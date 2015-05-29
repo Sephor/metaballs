@@ -37,6 +37,8 @@ MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 {
+	raycasting_b = true;
+	setupPropertyGroup();
 }
 
 MetaballsExample::~MetaballsExample() = default;
@@ -121,4 +123,19 @@ void MetaballsExample::onPaint()
     m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, sourceRect, targetFBO, gl::GL_BACK_LEFT, destRect, gl::GL_COLOR_BUFFER_BIT, gl::GL_NEAREST);
 
     m_fbo->unbind();
+}
+
+bool MetaballsExample::getRaycasting_b() const {
+	return raycasting_b;
+}
+
+void MetaballsExample::setRaycasting_b(bool value){
+	raycasting_b = value;
+}
+
+void MetaballsExample::setupPropertyGroup()
+{
+	
+	addProperty<bool>("Raycasting", this,
+		&MetaballsExample::getRaycasting_b, &MetaballsExample::setRaycasting_b);
 }

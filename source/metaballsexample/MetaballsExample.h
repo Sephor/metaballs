@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <map>
+#include <string>
 
 #include <glbinding/gl/types.h>
 
@@ -12,6 +14,8 @@
 
 #include <gloperate/painter/Painter.h>
 
+//Types of renderer
+enum Renderer{ RAYCASTING};
 
 namespace globjects
 {
@@ -28,15 +32,21 @@ namespace gloperate
 
 class MetaballsExample : public gloperate::Painter
 {
+private:
+	bool raycasting_b;
+
 public:
     MetaballsExample(gloperate::ResourceManager & resourceManager);
     virtual ~MetaballsExample();
 
     void setupProjection();
+	bool getRaycasting_b() const;
+	void setRaycasting_b(bool value);
 
 protected:
     virtual void onInitialize() override;
     virtual void onPaint() override;
+	void setupPropertyGroup();
 
 protected:
     /* capabilities */
