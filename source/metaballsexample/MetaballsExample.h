@@ -5,6 +5,10 @@
 #include <glbinding/gl/types.h>
 
 #include <globjects/base/ref_ptr.h>
+#include <globjects/Buffer.h>
+#include <globjects/VertexArray.h>
+#include <globjects/Framebuffer.h>
+#include <globjects/Texture.h>
 
 #include <gloperate/painter/Painter.h>
 
@@ -16,19 +20,17 @@ namespace globjects
 
 namespace gloperate
 {
-    class AdaptiveGrid;
-    class Icosahedron;
     class AbstractTargetFramebufferCapability;
     class AbstractViewportCapability;
     class AbstractPerspectiveProjectionCapability;
     class AbstractCameraCapability;
 }
 
-class EmptyExample : public gloperate::Painter
+class MetaballsExample : public gloperate::Painter
 {
 public:
-    EmptyExample(gloperate::ResourceManager & resourceManager);
-    virtual ~EmptyExample();
+    MetaballsExample(gloperate::ResourceManager & resourceManager);
+    virtual ~MetaballsExample();
 
     void setupProjection();
 
@@ -44,9 +46,9 @@ protected:
     gloperate::AbstractCameraCapability * m_cameraCapability;
 
     /* members */
-    globjects::ref_ptr<gloperate::AdaptiveGrid> m_grid;
-    globjects::ref_ptr<gloperate::Icosahedron> m_icosahedron;
-
+    globjects::ref_ptr<globjects::Buffer> m_vertices;
+    globjects::ref_ptr<globjects::VertexArray> m_vao;
     globjects::ref_ptr<globjects::Program> m_program;
-    gl::GLint m_transformLocation;
+    globjects::ref_ptr<globjects::Framebuffer> m_fbo;
+    globjects::ref_ptr<globjects::Texture> m_texture;
 };

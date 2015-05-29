@@ -38,6 +38,7 @@ add_subdirectory(emptyexample)
 add_subdirectory(openglexample)
 add_subdirectory(transparency)
 add_subdirectory(glexamples-viewer)
+add_subdirectory(metaballsexample)
 
 # Tests
 set(IDE_FOLDER "Tests")

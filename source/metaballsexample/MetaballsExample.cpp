@@ -1,4 +1,4 @@
-#include "OpenGLExample.h"
+#include "MetaballsExample.h"
 
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,7 +30,7 @@
 #include <globjects/Texture.h>
 #include <globjects/AttachedTexture.h>
 
-OpenGLExample::OpenGLExample(gloperate::ResourceManager & resourceManager)
+MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 :   Painter(resourceManager)
 ,   m_targetFramebufferCapability(addCapability(new gloperate::TargetFramebufferCapability()))
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
@@ -39,14 +39,14 @@ OpenGLExample::OpenGLExample(gloperate::ResourceManager & resourceManager)
 {
 }
 
-OpenGLExample::~OpenGLExample() = default;
+MetaballsExample::~MetaballsExample() = default;
 
-void OpenGLExample::setupProjection()
+void MetaballsExample::setupProjection()
 {
     //static const auto zNear = 0.3f, zFar = 15.f, fovy = 50.f;
 }
 
-void OpenGLExample::onInitialize()
+void MetaballsExample::onInitialize()
 {
     // create program
 
@@ -84,8 +84,8 @@ void OpenGLExample::onInitialize()
 
     m_program = new globjects::Program;
     m_program->attach(
-        globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/openglexample/shader.vert"),
-        globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/openglexample/shader.frag")
+        globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/MetaballsExample/shader.vert"),
+        globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/MetaballsExample/shader.frag")
     );
 
     gl::glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -93,7 +93,7 @@ void OpenGLExample::onInitialize()
     m_fbo->unbind();
 }
 
-void OpenGLExample::onPaint()
+void MetaballsExample::onPaint()
 {
     if (m_viewportCapability->hasChanged())
     {
