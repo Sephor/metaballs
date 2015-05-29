@@ -37,11 +37,13 @@ set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(sources
     ${source_path}/MetaballsExample.cpp
-    ${source_path}/plugin.cpp
+	${source_path}/RaycastingRenderer.cpp
+	${source_path}/plugin.cpp
 )
 
 set(api_includes
     ${include_path}/MetaballsExample.h
+	${include_path}/RaycastingRenderer.h
 )
 
 # Group source files
