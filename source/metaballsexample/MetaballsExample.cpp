@@ -9,7 +9,6 @@
 #include <globjects/globjects.h>
 #include <globjects/logging.h>
 #include <globjects/DebugMessage.h>
-#include <globjects/Program.h>
 
 #include <widgetzeug/make_unique.hpp>
 
@@ -21,12 +20,7 @@
 #include <gloperate/painter/CameraCapability.h>
 #include <gloperate/painter/VirtualTimeCapability.h>
 
-#include <gloperate/primitives/AdaptiveGrid.h>
-#include <gloperate/primitives/Icosahedron.h>
-
 #include <globjects/VertexAttributeBinding.h>
-#include <globjects/Program.h>
-#include <globjects/Shader.h>
 #include <globjects/Texture.h>
 #include <globjects/AttachedTexture.h>
 
@@ -62,37 +56,33 @@ void MetaballsExample::onInitialize()
 #endif
 
     m_texture = new globjects::Texture;
-    // void image2D(gl::GLint level, gl::GLenum internalFormat, gl::GLsizei width, gl::GLsizei height, gl::GLint border, gl::GLenum format, gl::GLenum type, const gl::GLvoid * data);
     m_texture->image2D(0, gl::GL_RGBA, m_viewportCapability->width(), m_viewportCapability->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 
     m_fbo = new globjects::Framebuffer;
     m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_texture, 0);
 
-    m_vertices = new globjects::Buffer;
-    m_vertices->setData(std::vector<float>{
-        -0.8f, -0.8f,
-        0.8f, -0.8f,
-        0.8f, 0.8f
-    }, gl::GL_STATIC_DRAW);
+	m_vertices = new globjects::Buffer;
+	m_vertices->setData(std::vector<float>{
+		-0.8f, -0.8f,
+			0.8f, -0.8f,
+			0.8f, 0.8f
+	}, gl::GL_STATIC_DRAW);
 
-    m_vao = new globjects::VertexArray;
+	m_vao = new globjects::VertexArray;
 
-    auto binding = m_vao->binding(0);
-    binding->setAttribute(0);
-    binding->setBuffer(m_vertices, 0, 2 * sizeof(float));
-    binding->setFormat(2, gl::GL_FLOAT);
+	auto binding = m_vao->binding(0);
+	binding->setAttribute(0);
+	binding->setBuffer(m_vertices, 0, 2 * sizeof(float));
+	binding->setFormat(2, gl::GL_FLOAT);
 
-    m_vao->enable(0);
-
-    m_program = new globjects::Program;
-    m_program->attach(
-        globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/MetaballsExample/shader.vert"),
-        globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/MetaballsExample/shader.frag")
-    );
+	m_vao->enable(0);
 
     gl::glClearColor(1.0, 1.0, 1.0, 1.0);
 
     m_fbo->unbind();
+
+	m_rayRenderer = new RaycastingRenderer();
+	m_rayRenderer->initialize();
 }
 
 void MetaballsExample::onPaint()
@@ -106,14 +96,11 @@ void MetaballsExample::onPaint()
 
     gl::glViewport(0, 0, m_viewportCapability->width() / 4, m_viewportCapability->height() / 4);
 
-    m_vao->bind();
-    m_program->use();
-
     m_fbo->bind();
-
-    gl::glClear(gl::GL_COLOR_BUFFER_BIT);
-
-    gl::glDrawArrays(gl::GL_TRIANGLES, 0, 3);
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
+	
+	if (raycasting_b)
+		m_rayRenderer->draw(m_vao);
 
     std::array<int, 4> sourceRect = {{ 0, 0, m_viewportCapability->width() / 4, m_viewportCapability->height() / 4 }};
     std::array<int, 4> destRect = {{ 0, 0, m_viewportCapability->width(), m_viewportCapability->height() }};

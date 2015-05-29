@@ -43,6 +43,7 @@ set(sources
 
 set(api_includes
     ${include_path}/MetaballsExample.h
+	${include_path}/AbstractRenderer.h
 	${include_path}/RaycastingRenderer.h
 )
 

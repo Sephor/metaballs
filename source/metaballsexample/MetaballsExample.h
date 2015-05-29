@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+#include "RaycastingRenderer.h"
+
 #include <glbinding/gl/types.h>
 
 #include <globjects/base/ref_ptr.h>
@@ -34,6 +36,7 @@ class MetaballsExample : public gloperate::Painter
 {
 private:
 	bool raycasting_b;
+	RaycastingRenderer* m_rayRenderer = nullptr;
 
 public:
     MetaballsExample(gloperate::ResourceManager & resourceManager);
@@ -58,7 +61,6 @@ protected:
     /* members */
     globjects::ref_ptr<globjects::Buffer> m_vertices;
     globjects::ref_ptr<globjects::VertexArray> m_vao;
-    globjects::ref_ptr<globjects::Program> m_program;
     globjects::ref_ptr<globjects::Framebuffer> m_fbo;
     globjects::ref_ptr<globjects::Texture> m_texture;
 };
