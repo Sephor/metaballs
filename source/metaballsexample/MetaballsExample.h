@@ -4,8 +4,6 @@
 #include <map>
 #include <string>
 
-#include "RaycastingRenderer.h"
-
 #include <glbinding/gl/types.h>
 
 #include <globjects/base/ref_ptr.h>
@@ -16,8 +14,6 @@
 
 #include <gloperate/painter/Painter.h>
 
-//Types of renderer
-enum Renderer{ RAYCASTING};
 
 namespace globjects
 {
@@ -32,19 +28,21 @@ namespace gloperate
     class AbstractCameraCapability;
 }
 
+class RaycastingRenderer;
+
 class MetaballsExample : public gloperate::Painter
 {
-private:
-	bool raycasting_b;
-	RaycastingRenderer* m_rayRenderer = nullptr;
-
 public:
     MetaballsExample(gloperate::ResourceManager & resourceManager);
     virtual ~MetaballsExample();
 
     void setupProjection();
-	bool getRaycasting_b() const;
-	void setRaycasting_b(bool value);
+	bool getRaycasting() const;
+	void setRaycasting(bool value);
+
+private:
+	bool m_raycasting;
+	std::unique_ptr<RaycastingRenderer> m_rayRenderer;
 
 protected:
     virtual void onInitialize() override;

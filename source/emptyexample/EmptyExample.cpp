@@ -119,6 +119,8 @@ void EmptyExample::onPaint()
 
     m_icosahedron->draw();
 
+	std::cout << fbo->checkStatus() << std::endl;
+
     m_program->release();
 
     Framebuffer::unbind(GL_FRAMEBUFFER);

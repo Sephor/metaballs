@@ -63,6 +63,8 @@ void OpenGLExample::onInitialize()
     // void image2D(gl::GLint level, gl::GLenum internalFormat, gl::GLsizei width, gl::GLsizei height, gl::GLint border, gl::GLenum format, gl::GLenum type, const gl::GLvoid * data);
     m_texture->image2D(0, gl::GL_RGBA, m_viewportCapability->width(), m_viewportCapability->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 
+	gl::glClearColor(0.f, 0.f, 0.f, 0.f);
+
     m_fbo = new globjects::Framebuffer;
     m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_texture, 0);
 
@@ -102,7 +104,7 @@ void OpenGLExample::onPaint()
         m_viewportCapability->setChanged(false);
     }
 
-    gl::glViewport(0, 0, m_viewportCapability->width() / 4, m_viewportCapability->height() / 4);
+    gl::glViewport(0, 0, m_viewportCapability->width(), m_viewportCapability->height());
 
     m_vao->bind();
     m_program->use();

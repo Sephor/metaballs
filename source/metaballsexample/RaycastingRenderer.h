@@ -2,15 +2,12 @@
 
 #include "AbstractRenderer.h"
 
-
-class RaycastingRenderer: public AbstractRenderer {
-
+class RaycastingRenderer: public AbstractRenderer
+{
 public:
 	RaycastingRenderer();
 	~RaycastingRenderer();
 
 	void initialize();
-	void draw( globjects::ref_ptr<globjects::VertexArray>& vao);
-
-
+	void draw(globjects::ref_ptr<globjects::VertexArray> & vao);
 };
