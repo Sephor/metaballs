@@ -28,7 +28,7 @@ void RaycastingRenderer::initialize()
 	);
 }
 
-void RaycastingRenderer::draw(globjects::ref_ptr<globjects::VertexArray>& vao)
+void RaycastingRenderer::draw(globjects::ref_ptr<globjects::VertexArray> & vao)
 {
 	vao->bind();
 	m_program->use();

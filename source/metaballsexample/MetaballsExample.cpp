@@ -107,9 +107,11 @@ void MetaballsExample::onPaint()
 
     globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
 
+	targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
+
     m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, sourceRect, targetFBO, gl::GL_BACK_LEFT, destRect, gl::GL_COLOR_BUFFER_BIT, gl::GL_NEAREST);
 
-    m_fbo->unbind();
+	globjects::Framebuffer::unbind();
 }
 
 bool MetaballsExample::getRaycasting() const
