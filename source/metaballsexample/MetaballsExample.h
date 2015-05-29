@@ -28,7 +28,7 @@ namespace gloperate
     class AbstractCameraCapability;
 }
 
-class RaycastingRenderer;
+class AbstractRenderer;
 
 class MetaballsExample : public gloperate::Painter
 {
@@ -37,12 +37,17 @@ public:
     virtual ~MetaballsExample();
 
     void setupProjection();
+
+	bool getOther() const;
+	void setOther(bool value);
 	bool getRaycasting() const;
 	void setRaycasting(bool value);
 
 private:
+	bool m_other;
 	bool m_raycasting;
-	std::unique_ptr<RaycastingRenderer> m_rayRenderer;
+	std::unique_ptr<AbstractRenderer> m_rayRenderer;
+	std::unique_ptr<AbstractRenderer> m_otherRenderer;
 
 protected:
     virtual void onInitialize() override;

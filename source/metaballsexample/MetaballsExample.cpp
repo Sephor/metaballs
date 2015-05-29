@@ -24,6 +24,7 @@
 #include <globjects/Texture.h>
 #include <globjects/AttachedTexture.h>
 
+#include "OtherRenderer.h"
 #include "RaycastingRenderer.h"
 
 MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
@@ -33,7 +34,7 @@ MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,	m_raycasting(true)
-,	m_rayRenderer(std::make_unique<RaycastingRenderer>())
+,	m_other(false)
 {
 	setupPropertyGroup();
 }
@@ -55,6 +56,7 @@ void MetaballsExample::onInitialize()
 
     globjects::debug() << "Using global OS X shader replacement '#version 140' -> '#version 150'" << std::endl;
 #endif
+	gl::glClearColor(1.0, 1.0, 1.0, 1.0);
 
     m_texture = new globjects::Texture;
     m_texture->image2D(0, gl::GL_RGBA, m_viewportCapability->width(), m_viewportCapability->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
@@ -82,6 +84,10 @@ void MetaballsExample::onInitialize()
 
     m_fbo->unbind();
 
+	m_otherRenderer = std::make_unique<OtherRenderer>();
+	m_rayRenderer = std::make_unique<RaycastingRenderer>();
+
+	m_otherRenderer->initialize();
 	m_rayRenderer->initialize();
 }
 
@@ -95,21 +101,31 @@ void MetaballsExample::onPaint()
 	}
 
 	gl::glViewport(0, 0, m_viewportCapability->width(), m_viewportCapability->height());
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
 	m_fbo->bind();
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
+	std::array<int, 4> rect = { { 0, 0, m_viewportCapability->width(), m_viewportCapability->height() } };
+
+	globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
+
 	if (m_raycasting)
+	{
 		m_rayRenderer->draw(m_vao);
 
-	std::array<int, 4> sourceRect = {{ 0, 0, m_viewportCapability->width(), m_viewportCapability->height() }};
-    std::array<int, 4> destRect = {{ 0, 0, m_viewportCapability->width(), m_viewportCapability->height() }};
+		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
+		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
+	}
+	if (m_other)
+	{
+		rect[0] += m_raycasting * static_cast<unsigned>(m_viewportCapability->width() / 2);
+			
+		m_otherRenderer->draw(m_vao);
 
-    globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
-
-	targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
-
-    m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, sourceRect, targetFBO, gl::GL_BACK_LEFT, destRect, gl::GL_COLOR_BUFFER_BIT, gl::GL_NEAREST);
+		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
+		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
+	}
 
 	globjects::Framebuffer::unbind();
 }
@@ -122,10 +138,24 @@ bool MetaballsExample::getRaycasting() const
 void MetaballsExample::setRaycasting(bool value)
 {
 	m_raycasting = value;
+	//m_other = !m_raycasting;
+}
+
+bool MetaballsExample::getOther() const
+{
+	return m_other;
+}
+
+void MetaballsExample::setOther(bool value)
+{
+	m_other = value;
+	//m_raycasting = !m_other;
 }
 
 void MetaballsExample::setupPropertyGroup()
 {
 	addProperty<bool>("Raycasting", this,
 		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting);
+	addProperty<bool>("Other", this,
+		&MetaballsExample::getOther, &MetaballsExample::setOther);
 }
