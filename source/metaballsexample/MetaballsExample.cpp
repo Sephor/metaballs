@@ -66,9 +66,10 @@ void MetaballsExample::onInitialize()
 
 	m_vertices = new globjects::Buffer;
 	m_vertices->setData(std::vector<float>{
-		-0.8f, -0.8f,
-			0.8f, -0.8f,
-			0.8f, 0.8f
+		-1.f, 1.f,
+		-1.f, -1.f,
+		1.f, 1.f,
+		1.f, -1.f
 	}, gl::GL_STATIC_DRAW);
 
 	m_vao = new globjects::VertexArray;
@@ -85,7 +86,7 @@ void MetaballsExample::onInitialize()
     m_fbo->unbind();
 
 	m_otherRenderer = std::make_unique<OtherRenderer>();
-	m_rayRenderer = std::make_unique<RaycastingRenderer>();
+	m_rayRenderer = std::make_unique<RaycastingRenderer>(m_viewportCapability, m_projectionCapability, m_cameraCapability);
 
 	m_otherRenderer->initialize();
 	m_rayRenderer->initialize();

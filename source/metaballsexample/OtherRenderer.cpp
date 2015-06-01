@@ -33,5 +33,5 @@ void OtherRenderer::draw(globjects::ref_ptr<globjects::VertexArray> & vao)
 	vao->bind();
 	m_program->use();
 	
-	gl::glDrawArrays(gl::GL_TRIANGLES, 0, 3);
+	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 }
