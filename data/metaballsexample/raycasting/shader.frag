@@ -76,7 +76,8 @@ void main()
 	
 	vec3 c;
 
-	rcast(ray, n, t);
+	if(!rcast(ray, n, t))
+		n = vec3(0.0, 0.0, 0.0);
 	c = n * 0.5 + 0.5;
 	
 	color = vec4(c, 1.0);
