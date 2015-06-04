@@ -30,13 +30,13 @@ ScreenSpaceFluidRenderer::~ScreenSpaceFluidRenderer()
 
 }
 
-
 void ScreenSpaceFluidRenderer::initialize()
 {
 	m_program = new globjects::Program;
 	m_program->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/shader.vert"),
-		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shader.frag")
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shader.frag"),
+		globjects::Shader::fromFile(gl::GL_GEOMETRY_SHADER, "data/metaballsexample/screen_space_fluid/quad_emmiting.geom")
 	);
 
 }
@@ -61,6 +61,6 @@ void ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_program->setUniform("view", painter->cameraCapability()->view());
 	
-	gl::glDrawArrays(gl::GL_POINTS, 0, painter->metaballs().size());
+	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, painter->metaballs().size());
 	m_vao->unbind();
 }
