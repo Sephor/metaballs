@@ -20,7 +20,6 @@
 #include <gloperate/painter/CameraCapability.h>
 #include <gloperate/painter/VirtualTimeCapability.h>
 
-#include <globjects/VertexAttributeBinding.h>
 #include <globjects/Texture.h>
 #include <globjects/AttachedTexture.h>
 
@@ -51,13 +50,18 @@ void MetaballsExample::onInitialize()
 {
     globjects::init();
 
+	for (unsigned int i = 0; i < m_metaballs.size(); i++)
+	{
+		m_metaballs[i] = glm::vec4(i * 2.f, 0.f, 0.f, 1.f);
+	}
+
 #ifdef __APPLE__
     globjects::Shader::clearGlobalReplacements();
     globjects::Shader::globalReplace("#version 140", "#version 150");
 
     globjects::debug() << "Using global OS X shader replacement '#version 140' -> '#version 150'" << std::endl;
 #endif
-	gl::glClearColor(1.0, 1.0, 1.0, 1.0);
+	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
 
     m_texture = new globjects::Texture;
     m_texture->image2D(0, gl::GL_RGBA, m_viewportCapability->width(), m_viewportCapability->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
@@ -65,31 +69,13 @@ void MetaballsExample::onInitialize()
     m_fbo = new globjects::Framebuffer;
     m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_texture, 0);
 
-	//m_vertices = new globjects::Buffer;
-	//m_vertices->setData(std::vector<float>{
-	//	-1.f, 1.f,
-	//	-1.f, -1.f,
-	//	1.f, 1.f,
-	//	1.f, -1.f
-	//}, gl::GL_STATIC_DRAW);
-	for (int i = 0; i < METABALLSCOUNT; i++)
-		m_metaballs[i] = glm::vec4(i * 2.f, 0.f, 0.f, 0.5f);
 
-	m_vao = new globjects::VertexArray;
-
-	auto binding = m_vao->binding(0);
-	binding->setAttribute(0);
-	binding->setBuffer(m_metaballs.data, 0, 4 * sizeof(float));
-	binding->setFormat(4, gl::GL_FLOAT);
-
-	m_vao->enable(0);
-
-    gl::glClearColor(1.0, 1.0, 1.0, 1.0);
+    gl::glClearColor(0.0, 0.0, 0.0, 1.0);
 
     m_fbo->unbind();
 
-	m_rayRenderer = std::make_unique<RaycastingRenderer>(m_viewportCapability, m_projectionCapability, m_cameraCapability);
-	m_SSFRenderer = std::make_unique<ScreenSpaceFluidRenderer>(m_viewportCapability, m_projectionCapability, m_cameraCapability);
+	m_SSFRenderer = std::make_unique<ScreenSpaceFluidRenderer>();
+	m_rayRenderer = std::make_unique<RaycastingRenderer>();
 
 	m_SSFRenderer->initialize();
 	m_rayRenderer->initialize();
@@ -115,10 +101,15 @@ void MetaballsExample::onPaint()
 	globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
 
 	if (m_raycasting)
+<<<<<<< HEAD
 	{	
 		
 		m_rayRenderer->computePhysiks();
 		m_rayRenderer->draw(m_vao);
+=======
+	{
+		m_rayRenderer->draw(this);
+>>>>>>> master
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
@@ -127,7 +118,11 @@ void MetaballsExample::onPaint()
 	{
 		rect[0] += m_raycasting * static_cast<unsigned>(m_viewportCapability->width() / 2);
 			
+<<<<<<< HEAD
 		m_SSFRenderer->draw(m_vao);
+=======
+		m_otherRenderer->draw(this);
+>>>>>>> master
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
@@ -162,6 +157,36 @@ void MetaballsExample::setupPropertyGroup()
 {
 	addProperty<bool>("Raycasting", this,
 		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting);
+<<<<<<< HEAD
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
+=======
+	addProperty<bool>("Other", this,
+		&MetaballsExample::getOther, &MetaballsExample::setOther);
+}
+
+const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const
+{
+	return m_targetFramebufferCapability;
+}
+
+const gloperate::AbstractViewportCapability * MetaballsExample::viewportCapability() const
+{
+	return m_viewportCapability;
+}
+
+const gloperate::AbstractPerspectiveProjectionCapability * MetaballsExample::projectionCapability() const
+{
+	return m_projectionCapability;
+}
+
+const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability() const
+{
+	return m_cameraCapability;
+}
+
+const std::array<glm::vec4, 20> & MetaballsExample::metaballs() const
+{
+	return m_metaballs;
+>>>>>>> master
 }
