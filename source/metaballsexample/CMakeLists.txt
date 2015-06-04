@@ -37,6 +37,7 @@ set(source_path "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(sources
     ${source_path}/MetaballsExample.cpp
+	${source_path}/FluidSimulator.cpp
 	${source_path}/OtherRenderer.cpp
 	${source_path}/RaycastingRenderer.cpp
 	${source_path}/plugin.cpp
@@ -44,7 +45,8 @@ set(sources
 
 set(api_includes
     ${include_path}/MetaballsExample.h
-	${source_path}/OtherRenderer.h
+	${include_path}/FluidSimulator.h
+	${include_path}/OtherRenderer.h
 	${include_path}/AbstractRenderer.h
 	${include_path}/RaycastingRenderer.h
 )
