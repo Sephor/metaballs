@@ -30,5 +30,5 @@ private:
 	gloperate::AbstractPerspectiveProjectionCapability * m_projectionCapability;
 	gloperate::AbstractCameraCapability * m_cameraCapability;
 
-	std::array<glm::vec4, 16> m_metaballs;
+	
 };

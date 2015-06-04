@@ -69,7 +69,30 @@ void MetaballsExample::onInitialize()
     m_fbo = new globjects::Framebuffer;
     m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_texture, 0);
 
+<<<<<<< HEAD
     gl::glClearColor(0.0, 0.0, 0.0, 1.0);
+=======
+	//m_vertices = new globjects::Buffer;
+	//m_vertices->setData(std::vector<float>{
+	//	-1.f, 1.f,
+	//	-1.f, -1.f,
+	//	1.f, 1.f,
+	//	1.f, -1.f
+	//}, gl::GL_STATIC_DRAW);
+	for (int i = 0; i < METABALLSCOUNT; i++)
+		m_metaballs[i] = glm::vec4(i * 2.f, 0.f, 0.f, 0.5f);
+
+	m_vao = new globjects::VertexArray;
+
+	auto binding = m_vao->binding(0);
+	binding->setAttribute(0);
+	binding->setBuffer(m_metaballs.data, 0, 4 * sizeof(float));
+	binding->setFormat(4, gl::GL_FLOAT);
+
+	m_vao->enable(0);
+
+    gl::glClearColor(1.0, 1.0, 1.0, 1.0);
+>>>>>>> DOESN'T WORK Merge commit
 
     m_fbo->unbind();
 
