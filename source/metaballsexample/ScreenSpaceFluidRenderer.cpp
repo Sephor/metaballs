@@ -1,4 +1,4 @@
-#include "RaycastingRenderer.h"
+#include "ScreenSpaceFluidRenderer.h"
 
 #include <iostream>
 
@@ -16,7 +16,7 @@
 #include <globjects/Shader.h>
 #include <globjects/VertexArray.h>
 
-RaycastingRenderer::RaycastingRenderer(
+ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer(
 	gloperate::AbstractViewportCapability * viewportCapability, 
 	gloperate::AbstractPerspectiveProjectionCapability * projectionCapability,
 	gloperate::AbstractCameraCapability * cameraCapability)
@@ -28,18 +28,18 @@ RaycastingRenderer::RaycastingRenderer(
 
 }
 
-RaycastingRenderer::~RaycastingRenderer()
+ScreenSpaceFluidRenderer::~ScreenSpaceFluidRenderer()
 {
 
 }
 
 
-void RaycastingRenderer::initialize()
+void ScreenSpaceFluidRenderer::initialize()
 {
 	m_program = new globjects::Program;
 	m_program->attach(
-		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/raycasting/shader.vert"),
-		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/raycasting/shader.frag")
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/shader.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shader.frag")
 	);
 
 	for (unsigned int i = 0; i < m_metaballs.size(); i++)
@@ -48,7 +48,7 @@ void RaycastingRenderer::initialize()
 	}
 }
 
-void RaycastingRenderer::draw(globjects::ref_ptr<globjects::VertexArray> & vao)
+void ScreenSpaceFluidRenderer::draw(globjects::ref_ptr<globjects::VertexArray> & vao)
 {
 
 	vao->bind();
@@ -59,8 +59,4 @@ void RaycastingRenderer::draw(globjects::ref_ptr<globjects::VertexArray> & vao)
 	m_program->setUniform("view", m_cameraCapability->view());
 	
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
-}
-
-void RaycastingRenderer::computePhysiks(){
-	m_metaballs[0] += glm::vec4(0.01f , 0.0f, 0.0f, 0.0f);
 }

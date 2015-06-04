@@ -13,12 +13,12 @@ namespace gloperate
 	class AbstractCameraCapability;
 }
 
-class RaycastingRenderer: public AbstractRenderer
+class ScreenSpaceFluidRenderer: public AbstractRenderer
 {
 public:
-	RaycastingRenderer() = delete;
-	RaycastingRenderer(gloperate::AbstractViewportCapability * viewportCapability, gloperate::AbstractPerspectiveProjectionCapability * projectionCapability, gloperate::AbstractCameraCapability * cameraCapability);
-	~RaycastingRenderer();
+	ScreenSpaceFluidRenderer() = delete;
+	ScreenSpaceFluidRenderer(gloperate::AbstractViewportCapability * viewportCapability, gloperate::AbstractPerspectiveProjectionCapability * projectionCapability, gloperate::AbstractCameraCapability * cameraCapability);
+	~ScreenSpaceFluidRenderer();
 
 	void initialize();
 	void draw(globjects::ref_ptr<globjects::VertexArray> & vao);

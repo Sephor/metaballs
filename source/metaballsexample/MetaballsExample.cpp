@@ -26,6 +26,7 @@
 
 #include "OtherRenderer.h"
 #include "RaycastingRenderer.h"
+#include "ScreenSpaceFluidRenderer.h"
 
 MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 :   Painter(resourceManager)
@@ -34,7 +35,7 @@ MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,	m_raycasting(true)
-,	m_other(false)
+,   m_SSF(false)
 {
 	setupPropertyGroup();
 }
@@ -85,10 +86,10 @@ void MetaballsExample::onInitialize()
 
     m_fbo->unbind();
 
-	m_otherRenderer = std::make_unique<OtherRenderer>();
 	m_rayRenderer = std::make_unique<RaycastingRenderer>(m_viewportCapability, m_projectionCapability, m_cameraCapability);
+	m_SSFRenderer = std::make_unique<ScreenSpaceFluidRenderer>(m_viewportCapability, m_projectionCapability, m_cameraCapability);
 
-	m_otherRenderer->initialize();
+	m_SSFRenderer->initialize();
 	m_rayRenderer->initialize();
 }
 
@@ -112,17 +113,19 @@ void MetaballsExample::onPaint()
 	globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
 
 	if (m_raycasting)
-	{
+	{	
+		
+		m_rayRenderer->computePhysiks();
 		m_rayRenderer->draw(m_vao);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
 	}
-	if (m_other)
+	if (m_SSF)
 	{
 		rect[0] += m_raycasting * static_cast<unsigned>(m_viewportCapability->width() / 2);
 			
-		m_otherRenderer->draw(m_vao);
+		m_SSFRenderer->draw(m_vao);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
@@ -142,21 +145,21 @@ void MetaballsExample::setRaycasting(bool value)
 	//m_other = !m_raycasting;
 }
 
-bool MetaballsExample::getOther() const
+bool MetaballsExample::getSSF() const
 {
-	return m_other;
+	return m_SSF;
 }
 
-void MetaballsExample::setOther(bool value)
+void MetaballsExample::setSSF(bool value)
 {
-	m_other = value;
-	//m_raycasting = !m_other;
+	m_SSF = value;
+	//m_other = !m_raycasting;
 }
 
 void MetaballsExample::setupPropertyGroup()
 {
 	addProperty<bool>("Raycasting", this,
 		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting);
-	addProperty<bool>("Other", this,
-		&MetaballsExample::getOther, &MetaballsExample::setOther);
+	addProperty<bool>("ScreenSpaceFluid", this,
+		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 }
