@@ -81,11 +81,9 @@ void main()
 	
 	vec3 c;
 
-<<<<<<< HEAD
-	rcast(ray, n, t);	
-=======
+
 	rcast(ray, n, t);
->>>>>>> master
+
 	c = n * 0.5 + 0.5;
 	
 	color = vec4(c, 1.0);

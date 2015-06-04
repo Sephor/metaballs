@@ -6,29 +6,30 @@
 
 #include <glm/vec4.hpp>
 
-namespace gloperate
+#include <globjects\base\ref_ptr.h>
+
+namespace globjects
 {
-	class AbstractViewportCapability;
-	class AbstractPerspectiveProjectionCapability;
-	class AbstractCameraCapability;
+	class Program;
+	class VertexArray;
+	class Buffer;
 }
 
 class ScreenSpaceFluidRenderer: public AbstractRenderer
 {
 public:
-	ScreenSpaceFluidRenderer() = delete;
-	ScreenSpaceFluidRenderer(gloperate::AbstractViewportCapability * viewportCapability, gloperate::AbstractPerspectiveProjectionCapability * projectionCapability, gloperate::AbstractCameraCapability * cameraCapability);
+	ScreenSpaceFluidRenderer();
 	~ScreenSpaceFluidRenderer();
 
 	void initialize();
-	void draw(globjects::ref_ptr<globjects::VertexArray> & vao);
+	void draw(MetaballsExample * painter);
 
 	void computePhysiks();
 
 private:
-	gloperate::AbstractViewportCapability * m_viewportCapability;
-	gloperate::AbstractPerspectiveProjectionCapability * m_projectionCapability;
-	gloperate::AbstractCameraCapability * m_cameraCapability;
+	globjects::ref_ptr<globjects::Buffer> m_vertices;
+	globjects::ref_ptr<globjects::VertexArray> m_vao;
+	globjects::ref_ptr<globjects::Program> m_program;
 
 	
 };

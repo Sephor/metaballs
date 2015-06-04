@@ -12,18 +12,15 @@
 #include <gloperate/painter/PerspectiveProjectionCapability.h>
 #include <gloperate/painter/ViewportCapability.h>
 
+#include <globjects/Buffer.h>
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
 #include <globjects/VertexArray.h>
+#include <globjects/VertexAttributeBinding.h>
 
-ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer(
-	gloperate::AbstractViewportCapability * viewportCapability, 
-	gloperate::AbstractPerspectiveProjectionCapability * projectionCapability,
-	gloperate::AbstractCameraCapability * cameraCapability)
+#include "MetaballsExample.h"
 
-:	m_cameraCapability(cameraCapability)
-,	m_viewportCapability(viewportCapability)
-,	m_projectionCapability(projectionCapability)
+ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
 {
 
 }
@@ -42,21 +39,28 @@ void ScreenSpaceFluidRenderer::initialize()
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shader.frag")
 	);
 
-	for (unsigned int i = 0; i < m_metaballs.size(); i++)
-	{
-		m_metaballs[i] = glm::vec4(i * 2.f, 0.f, 0.f, 0.5f);
-	}
 }
 
-void ScreenSpaceFluidRenderer::draw(globjects::ref_ptr<globjects::VertexArray> & vao)
+void ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 {
+	m_vertices = new globjects::Buffer;
+	m_vertices->setData( painter->metaballs() , gl::GL_STATIC_DRAW);
 
-	vao->bind();
+	m_vao = new globjects::VertexArray;
+	auto binding = m_vao->binding(0);
+	binding->setAttribute(0);
+	binding->setBuffer(m_vertices, 0, 4 * sizeof(float));
+	binding->setFormat(4, gl::GL_FLOAT);
+	m_vao->enable(0);
+
+	m_vao->bind();
+
 	m_program->use();
-	m_program->setUniform("metaballs", m_metaballs);
-	m_program->setUniform("eye", m_cameraCapability->eye());
-	m_program->setUniform("projectionInverted", m_projectionCapability->projectionInverted());
-	m_program->setUniform("view", m_cameraCapability->view());
+	m_program->setUniform("metaballs", painter->metaballs());
+	m_program->setUniform("eye", painter->cameraCapability()->eye());
+	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+	m_program->setUniform("view", painter->cameraCapability()->view());
 	
-	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+	gl::glDrawArrays(gl::GL_POINTS, 0, painter->metaballs().size());
+	m_vao->unbind();
 }
