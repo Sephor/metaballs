@@ -121,13 +121,13 @@ void MetaballsExample::onPaint()
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
 	m_fbo->bind();
-	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
 	std::array<int, 4> rect = { { 0, 0, m_viewportCapability->width(), m_viewportCapability->height() } };
 
 	globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
 
 	if (m_raycasting)
+<<<<<<< HEAD
 <<<<<<< HEAD
 	{
 		m_rayRenderer->draw(this);
@@ -137,19 +137,31 @@ void MetaballsExample::onPaint()
 		m_rayRenderer->computePhysiks();
 		m_rayRenderer->draw(m_vao);
 >>>>>>> initialize ScreenSpaceFluidRenderer
+=======
+
+	{
+		gl::glClear(gl::GL_COLOR_BUFFER_BIT);
+		m_rayRenderer->draw(this);
+>>>>>>> fixed merge issues & initialize SSFR
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
 	}
 	if (m_SSF)
-	{
+	{	
+		gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 		rect[0] += m_raycasting * static_cast<unsigned>(m_viewportCapability->width() / 2);
+<<<<<<< HEAD
 			
 <<<<<<< HEAD
 		m_otherRenderer->draw(this);
 =======
 		m_SSFRenderer->draw(m_vao);
 >>>>>>> initialize ScreenSpaceFluidRenderer
+=======
+		
+		m_SSFRenderer->draw(this);
+>>>>>>> fixed merge issues & initialize SSFR
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
@@ -185,8 +197,15 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("Raycasting", this,
 		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	addProperty<bool>("Other", this,
 		&MetaballsExample::getOther, &MetaballsExample::setOther);
+=======
+
+	addProperty<bool>("ScreenSpaceFluid", this,
+		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
+
+>>>>>>> fixed merge issues & initialize SSFR
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const
@@ -209,11 +228,15 @@ const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability()
 	return m_cameraCapability;
 }
 
-const std::array<glm::vec4, 20> & MetaballsExample::metaballs() const
+const std::array<glm::vec4, METABALLSCOUNT> & MetaballsExample::metaballs() const
 {
 	return m_metaballs;
+<<<<<<< HEAD
 =======
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 >>>>>>> initialize ScreenSpaceFluidRenderer
+=======
+
+>>>>>>> fixed merge issues & initialize SSFR
 }

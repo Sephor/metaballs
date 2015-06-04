@@ -3,6 +3,8 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <array>
+#include <glm/vec4.hpp>
 
 #include <glbinding/gl/types.h>
 
@@ -32,9 +34,6 @@ const int METABALLSCOUNT = 16;
 
 class MetaballsExample : public gloperate::Painter
 {
-
-	std::array<glm::vec4, METABALLSCOUNT> m_metaballs;
-
 public:
     MetaballsExample(gloperate::ResourceManager & resourceManager);
     virtual ~MetaballsExample();
@@ -53,7 +52,7 @@ public:
 	const gloperate::AbstractPerspectiveProjectionCapability * projectionCapability() const;
 	const gloperate::AbstractCameraCapability * cameraCapability() const;
 
-	const std::array<glm::vec4, 20> & metaballs() const;
+	const std::array<glm::vec4, METABALLSCOUNT> & metaballs() const;
 
 private:
 	
@@ -80,5 +79,5 @@ protected:
     globjects::ref_ptr<globjects::Framebuffer> m_fbo;
     globjects::ref_ptr<globjects::Texture> m_texture;
 
-	std::array<glm::vec4, 20> m_metaballs;
+	std::array<glm::vec4, METABALLSCOUNT> m_metaballs;
 };

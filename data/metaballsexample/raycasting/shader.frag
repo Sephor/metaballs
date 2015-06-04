@@ -232,9 +232,16 @@ void main()
 	float t;
 	vec3 c;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 	rcast(ray, n, t);	
+=======
+
+
+	rcast(ray, n, t);
+
+>>>>>>> fixed merge issues & initialize SSFR
 	c = n * 0.5 + 0.5;
 >>>>>>> initialize ScreenSpaceFluidRenderer
 	
