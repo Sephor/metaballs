@@ -56,11 +56,8 @@ void ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 	m_vao->bind();
 
 	m_program->use();
-	m_program->setUniform("metaballs", painter->metaballs());
-	m_program->setUniform("eye", painter->cameraCapability()->eye());
-	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
-	m_program->setUniform("view", painter->cameraCapability()->view());
+	m_program->setUniform("viewProjection", painter->projectionCapability()->projection() * painter->cameraCapability()->view() );
 	
-	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, painter->metaballs().size());
+	gl::glDrawArrays(gl::GL_POINTS, 0, painter->metaballs().size());
 	m_vao->unbind();
 }
