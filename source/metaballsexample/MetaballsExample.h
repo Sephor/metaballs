@@ -14,6 +14,11 @@
 
 #include <gloperate/painter/Painter.h>
 
+<<<<<<< HEAD
+=======
+#include "FluidSimulator.h"
+
+>>>>>>> Physik im raycast Renderer eingebunden
 namespace globjects
 {
     class Program;
@@ -52,15 +57,24 @@ public:
 	const gloperate::AbstractPerspectiveProjectionCapability * projectionCapability() const;
 	const gloperate::AbstractCameraCapability * cameraCapability() const;
 
+<<<<<<< HEAD
 	const std::array<glm::vec4, METABALLSCOUNT> & metaballs() const;
 
+=======
+>>>>>>> Physik im raycast Renderer eingebunden
 private:
 	
 	bool m_raycasting;
+<<<<<<< HEAD
 	bool m_SSF;
 
 	std::unique_ptr<ScreenSpaceFluidRenderer> m_SSFRenderer;
 	std::unique_ptr<RaycastingRenderer> m_rayRenderer;
+=======
+	std::unique_ptr<AbstractRenderer> m_rayRenderer;
+	std::unique_ptr<AbstractRenderer> m_otherRenderer;
+	FluidSimulator m_fluidSimulator;
+>>>>>>> Physik im raycast Renderer eingebunden
 
 
 protected:
@@ -78,6 +92,9 @@ protected:
     /* members */
     globjects::ref_ptr<globjects::Framebuffer> m_fbo;
     globjects::ref_ptr<globjects::Texture> m_texture;
+<<<<<<< HEAD
 
 	std::array<glm::vec4, METABALLSCOUNT> m_metaballs;
+=======
+>>>>>>> Physik im raycast Renderer eingebunden
 };

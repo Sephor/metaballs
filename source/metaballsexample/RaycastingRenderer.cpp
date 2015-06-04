@@ -65,7 +65,9 @@ void RaycastingRenderer::initialize()
 >>>>>>> initialize ScreenSpaceFluidRenderer
 }
 
-void RaycastingRenderer::draw(MetaballsExample * painter)
+void RaycastingRenderer::draw(
+	MetaballsExample * painter, 
+	const std::vector<glm::vec4> & metaballs)
 {
 <<<<<<< HEAD
 	m_vao->bind();
@@ -74,7 +76,7 @@ void RaycastingRenderer::draw(MetaballsExample * painter)
 	vao->bind();
 >>>>>>> initialize ScreenSpaceFluidRenderer
 	m_program->use();
-	m_program->setUniform("metaballs", painter->metaballs());
+	m_program->setUniform("metaballs", metaballs);
 	m_program->setUniform("eye", painter->cameraCapability()->eye());
 	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_program->setUniform("view", painter->cameraCapability()->view());

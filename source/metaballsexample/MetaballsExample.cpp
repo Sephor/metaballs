@@ -50,11 +50,6 @@ void MetaballsExample::onInitialize()
 {
     globjects::init();
 
-	for (unsigned int i = 0; i < m_metaballs.size(); i++)
-	{
-		m_metaballs[i] = glm::vec4(i * 1.f, 0.f, 0.f, 1.f);
-	}
-
 #ifdef __APPLE__
     globjects::Shader::clearGlobalReplacements();
     globjects::Shader::globalReplace("#version 140", "#version 150");
@@ -110,6 +105,8 @@ void MetaballsExample::onInitialize()
 
 void MetaballsExample::onPaint()
 {
+	m_fluidSimulator.update(0.01f); //TODO: get actual elapsed time
+
 	if (m_viewportCapability->hasChanged())
 	{
 		m_texture->image2D(0, gl::GL_RGBA, m_viewportCapability->width(), m_viewportCapability->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
@@ -140,9 +137,13 @@ void MetaballsExample::onPaint()
 =======
 
 	{
+<<<<<<< HEAD
 		gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 		m_rayRenderer->draw(this);
 >>>>>>> fixed merge issues & initialize SSFR
+=======
+		m_rayRenderer->draw(this, m_fluidSimulator.metaballs());
+>>>>>>> Physik im raycast Renderer eingebunden
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
@@ -154,6 +155,7 @@ void MetaballsExample::onPaint()
 <<<<<<< HEAD
 			
 <<<<<<< HEAD
+<<<<<<< HEAD
 		m_otherRenderer->draw(this);
 =======
 		m_SSFRenderer->draw(m_vao);
@@ -162,6 +164,9 @@ void MetaballsExample::onPaint()
 		
 		m_SSFRenderer->draw(this);
 >>>>>>> fixed merge issues & initialize SSFR
+=======
+		m_otherRenderer->draw(this, m_fluidSimulator.metaballs());
+>>>>>>> Physik im raycast Renderer eingebunden
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
@@ -226,6 +231,7 @@ const gloperate::AbstractPerspectiveProjectionCapability * MetaballsExample::pro
 const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability() const
 {
 	return m_cameraCapability;
+<<<<<<< HEAD
 }
 
 const std::array<glm::vec4, METABALLSCOUNT> & MetaballsExample::metaballs() const
@@ -239,4 +245,6 @@ const std::array<glm::vec4, METABALLSCOUNT> & MetaballsExample::metaballs() cons
 =======
 
 >>>>>>> fixed merge issues & initialize SSFR
+=======
+>>>>>>> Physik im raycast Renderer eingebunden
 }

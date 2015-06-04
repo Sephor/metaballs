@@ -22,7 +22,9 @@ public:
 	~RaycastingRenderer();
 
 	void initialize();
-	void draw(MetaballsExample * painter);
+	void draw(
+		MetaballsExample * painter,
+		const std::vector<glm::vec4> & metaballs);
 
 	void computePhysiks();
 

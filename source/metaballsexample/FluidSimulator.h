@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 class FluidSimulator
 {
@@ -17,7 +18,7 @@ public:
 		glm::vec3 velocity;
 	};
 
-	const std::vector<Metaball> & getMetaballs() const;
+	std::vector<glm::vec4> metaballs();
 	void update(float elapsedTime);
 
 private:
