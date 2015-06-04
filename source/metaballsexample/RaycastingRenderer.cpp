@@ -57,11 +57,13 @@ void RaycastingRenderer::initialize()
 	);
 }
 
-void RaycastingRenderer::draw(MetaballsExample * painter)
+void RaycastingRenderer::draw(
+	MetaballsExample * painter, 
+	const std::vector<glm::vec4> & metaballs)
 {
 	m_vao->bind();
 	m_program->use();
-	m_program->setUniform("metaballs", painter->metaballs());
+	m_program->setUniform("metaballs", metaballs);
 	m_program->setUniform("eye", painter->cameraCapability()->eye());
 	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_program->setUniform("view", painter->cameraCapability()->view());

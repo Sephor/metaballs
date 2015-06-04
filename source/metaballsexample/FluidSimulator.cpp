@@ -19,9 +19,16 @@ FluidSimulator::~FluidSimulator()
 
 }
 
-const std::vector<FluidSimulator::Metaball> & FluidSimulator::getMetaballs() const
+std::vector<glm::vec4> FluidSimulator::metaballs()
 {
-	return m_metaballs;
+	std::vector<glm::vec4> temp(m_metaballs.size());
+
+	for (int i = 0; i < m_metaballs.size(); i++)
+	{
+		temp[i] = glm::vec4(m_metaballs[i].position, m_metaballs[i].radius);
+	}
+
+	return temp;
 }
 
 void FluidSimulator::update(float elapsedTime)

@@ -12,6 +12,7 @@
 
 #include <gloperate/painter/Painter.h>
 
+#include "FluidSimulator.h"
 
 namespace globjects
 {
@@ -46,13 +47,13 @@ public:
 	const gloperate::AbstractPerspectiveProjectionCapability * projectionCapability() const;
 	const gloperate::AbstractCameraCapability * cameraCapability() const;
 
-	const std::array<glm::vec4, 20> & metaballs() const;
-
 private:
 	bool m_other;
 	bool m_raycasting;
 	std::unique_ptr<AbstractRenderer> m_rayRenderer;
 	std::unique_ptr<AbstractRenderer> m_otherRenderer;
+	FluidSimulator m_fluidSimulator;
+
 
 protected:
     virtual void onInitialize() override;
@@ -69,6 +70,4 @@ protected:
     /* members */
     globjects::ref_ptr<globjects::Framebuffer> m_fbo;
     globjects::ref_ptr<globjects::Texture> m_texture;
-
-	std::array<glm::vec4, 20> m_metaballs;
 };

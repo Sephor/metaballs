@@ -49,10 +49,9 @@ void OtherRenderer::initialize()
 	);
 }
 
-void OtherRenderer::draw(MetaballsExample * painter)
+void OtherRenderer::draw(
+	MetaballsExample * painter, 
+	const std::vector<glm::vec4> & metaballs)
 {
-	m_vao->bind();
-	m_program->use();
 	
-	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 }
