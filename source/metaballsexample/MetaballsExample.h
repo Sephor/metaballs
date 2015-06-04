@@ -7,8 +7,6 @@
 #include <glbinding/gl/types.h>
 
 #include <globjects/base/ref_ptr.h>
-#include <globjects/Buffer.h>
-#include <globjects/VertexArray.h>
 #include <globjects/Framebuffer.h>
 #include <globjects/Texture.h>
 
@@ -43,6 +41,13 @@ public:
 	bool getRaycasting() const;
 	void setRaycasting(bool value);
 
+	const gloperate::AbstractTargetFramebufferCapability * targetFramebufferCapability() const;
+	const gloperate::AbstractViewportCapability * viewportCapability() const;
+	const gloperate::AbstractPerspectiveProjectionCapability * projectionCapability() const;
+	const gloperate::AbstractCameraCapability * cameraCapability() const;
+
+	const std::array<glm::vec4, 20> & metaballs() const;
+
 private:
 	bool m_other;
 	bool m_raycasting;
@@ -62,8 +67,8 @@ protected:
     gloperate::AbstractCameraCapability * m_cameraCapability;
 
     /* members */
-    globjects::ref_ptr<globjects::Buffer> m_vertices;
-    globjects::ref_ptr<globjects::VertexArray> m_vao;
     globjects::ref_ptr<globjects::Framebuffer> m_fbo;
     globjects::ref_ptr<globjects::Texture> m_texture;
+
+	std::array<glm::vec4, 20> m_metaballs;
 };

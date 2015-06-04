@@ -6,27 +6,26 @@
 
 #include <glm/vec4.hpp>
 
-namespace gloperate
+#include <globjects\base\ref_ptr.h>
+
+namespace globjects
 {
-	class AbstractViewportCapability;
-	class AbstractPerspectiveProjectionCapability;
-	class AbstractCameraCapability;
+	class Program;
+	class VertexArray;
+	class Buffer;
 }
 
 class RaycastingRenderer: public AbstractRenderer
 {
 public:
-	RaycastingRenderer() = delete;
-	RaycastingRenderer(gloperate::AbstractViewportCapability * viewportCapability, gloperate::AbstractPerspectiveProjectionCapability * projectionCapability, gloperate::AbstractCameraCapability * cameraCapability);
+	RaycastingRenderer();
 	~RaycastingRenderer();
 
 	void initialize();
-	void draw(globjects::ref_ptr<globjects::VertexArray> & vao);
+	void draw(MetaballsExample * painter);
 
 private:
-	gloperate::AbstractViewportCapability * m_viewportCapability;
-	gloperate::AbstractPerspectiveProjectionCapability * m_projectionCapability;
-	gloperate::AbstractCameraCapability * m_cameraCapability;
-
-	std::array<glm::vec4, 16> m_metaballs;
+	globjects::ref_ptr<globjects::Buffer> m_vertices;
+	globjects::ref_ptr<globjects::VertexArray> m_vao;
+	globjects::ref_ptr<globjects::Program> m_program;
 };

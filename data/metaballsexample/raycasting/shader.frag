@@ -1,7 +1,4 @@
-#version 140
-
-const float INFINITY = 1e+4;
-const float SIZE = 16;
+#version 150
 
 in vec3 v_sky;
 
@@ -9,6 +6,9 @@ out vec4 color;
 
 uniform vec4 metaballs[16];
 uniform vec3 eye;
+
+const float INFINITY = 1e+4;
+const int SIZE = 16;
 
 struct Sphere
 {
@@ -44,8 +44,10 @@ bool intersect(
 	return false;
 }
 
+
 bool rcast(in Ray ray, out vec3 normal, out float t)
 {	
+	normal = vec3(0.0);
 	t =  INFINITY;
 	
 	for(int i = 0; i < SIZE; ++i)
@@ -76,8 +78,7 @@ void main()
 	
 	vec3 c;
 
-	if(!rcast(ray, n, t))
-		n = vec3(0.0, 0.0, 0.0);
+	rcast(ray, n, t);
 	c = n * 0.5 + 0.5;
 	
 	color = vec4(c, 1.0);
