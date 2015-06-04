@@ -39,6 +39,7 @@ set(sources
     ${source_path}/MetaballsExample.cpp
 	${source_path}/OtherRenderer.cpp
 	${source_path}/RaycastingRenderer.cpp
+	${source_path}/ScreenSpaceFluidRenderer.cpp
 	${source_path}/plugin.cpp
 )
 
@@ -47,6 +48,7 @@ set(api_includes
 	${source_path}/OtherRenderer.h
 	${include_path}/AbstractRenderer.h
 	${include_path}/RaycastingRenderer.h
+	${source_path}/ScreenSpaceFluidRenderer.h
 )
 
 # Group source files

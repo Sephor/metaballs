@@ -150,7 +150,11 @@ void interp(in vec3 pos, out vec3 N/*, out Material M*/)
 
 bool rcast(in Ray ray, out vec3 normal, out float t)
 {	
+<<<<<<< HEAD
 	normal = vec3(0.0);
+=======
+	normal = vec3(0.0, 0.0, 0.0);
+>>>>>>> initialize ScreenSpaceFluidRenderer
 	t =  INFINITY;
 	
 	for(int i = 0; i < SIZE; ++i)
@@ -161,6 +165,7 @@ bool rcast(in Ray ray, out vec3 normal, out float t)
 		if(intersect(metaballs[i], ray, t0, t1) && t0 < t && t0 > 0.0)
 		{
 			t = t0;
+			
 			normal = normalize((ray.origin + ray.direction * t) - metaballs[i].xyz);
 		}
 	}
@@ -226,6 +231,12 @@ void main()
 
 	float t;
 	vec3 c;
+<<<<<<< HEAD
+=======
+
+	rcast(ray, n, t);	
+	c = n * 0.5 + 0.5;
+>>>>>>> initialize ScreenSpaceFluidRenderer
 	
 	float lum = 0.0;
 	

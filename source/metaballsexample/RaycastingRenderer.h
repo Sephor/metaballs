@@ -24,6 +24,8 @@ public:
 	void initialize();
 	void draw(MetaballsExample * painter);
 
+	void computePhysiks();
+
 private:
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
 	globjects::ref_ptr<globjects::VertexArray> m_vao;

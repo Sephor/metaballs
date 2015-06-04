@@ -55,11 +55,24 @@ void RaycastingRenderer::initialize()
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/raycasting/shader.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/raycasting/shader.frag")
 	);
+<<<<<<< HEAD
+=======
+
+	for (unsigned int i = 0; i < m_metaballs.size(); i++)
+	{
+		m_metaballs[i] = glm::vec4(i * 2.f, 0.f, 0.f, 0.5f);
+	}
+>>>>>>> initialize ScreenSpaceFluidRenderer
 }
 
 void RaycastingRenderer::draw(MetaballsExample * painter)
 {
+<<<<<<< HEAD
 	m_vao->bind();
+=======
+
+	vao->bind();
+>>>>>>> initialize ScreenSpaceFluidRenderer
 	m_program->use();
 	m_program->setUniform("metaballs", painter->metaballs());
 	m_program->setUniform("eye", painter->cameraCapability()->eye());
@@ -67,4 +80,8 @@ void RaycastingRenderer::draw(MetaballsExample * painter)
 	m_program->setUniform("view", painter->cameraCapability()->view());
 	
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void RaycastingRenderer::computePhysiks(){
+	m_metaballs[0] += glm::vec4(0.01f , 0.0f, 0.0f, 0.0f);
 }
