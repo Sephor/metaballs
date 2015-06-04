@@ -51,7 +51,7 @@ void MetaballsExample::onInitialize()
 
 	for (unsigned int i = 0; i < m_metaballs.size(); i++)
 	{
-		m_metaballs[i] = glm::vec4(i * 2.f, 0.f, 0.f, 1.f);
+		m_metaballs[i] = glm::vec4(i * 1.f, 0.f, 0.f, 1.f);
 	}
 
 #ifdef __APPLE__
