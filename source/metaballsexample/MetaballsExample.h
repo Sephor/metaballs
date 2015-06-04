@@ -14,7 +14,6 @@
 
 #include <gloperate/painter/Painter.h>
 
-
 namespace globjects
 {
     class Program;
@@ -31,8 +30,13 @@ namespace gloperate
 class RaycastingRenderer;
 class ScreenSpaceFluidRenderer;
 
+const int METABALLSCOUNT = 16;
+
 class MetaballsExample : public gloperate::Painter
 {
+
+	std::array<glm::vec4, METABALLSCOUNT> m_metaballs;
+
 public:
     MetaballsExample(gloperate::ResourceManager & resourceManager);
     virtual ~MetaballsExample();
