@@ -1,8 +1,9 @@
-#version 140
+#version 150 core
 
-in vec4 in_vertex;
+in vec4 pos;
 
-void main()
-{
+void main() {
+
+    gl_Position = pos;
 	
 }
