@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <chrono>
 #include <vector>
 
@@ -19,7 +20,7 @@ public:
 		glm::vec3 velocity;
 	};
 
-	std::vector<glm::vec4> metaballs();
+	const std::array<glm::vec4, 20> getMetaballs() const;
 	void update();
 
 private:

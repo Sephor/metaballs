@@ -13,7 +13,5 @@ public:
 	~AbstractRenderer(){};
 
 	virtual void initialize() = 0;
-	virtual void draw(
-		MetaballsExample * painter, 
-		const std::vector<glm::vec4> & metaballs) = 0;
+	virtual void draw(MetaballsExample * painte) = 0;
 };
