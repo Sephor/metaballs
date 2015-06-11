@@ -50,11 +50,6 @@ void MetaballsExample::onInitialize()
 {
     globjects::init();
 
-	for (unsigned int i = 0; i < m_metaballs.size(); i++)
-	{
-		m_metaballs[i] = glm::vec4(i * 1.f, 0.f, 0.f, 1.f);
-	}
-
 #ifdef __APPLE__
     globjects::Shader::clearGlobalReplacements();
     globjects::Shader::globalReplace("#version 140", "#version 150");
@@ -176,8 +171,7 @@ const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability()
 	return m_cameraCapability;
 }
 
-const std::array<glm::vec4, METABALLSCOUNT> & MetaballsExample::metaballs() const
+const std::array<glm::vec4, 20> & MetaballsExample::getMetaballs() const
 {
-	return m_metaballs;
-
+	return m_fluidSimulator.getMetaballs();
 }
