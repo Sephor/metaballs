@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "MetaballsExample.h"
 
 #include <glm/gtc/constants.hpp>
@@ -249,6 +250,8 @@ const std::array<glm::vec4, METABALLSCOUNT> & MetaballsExample::metaballs() cons
 =======
 >>>>>>> Physik im raycast Renderer eingebunden
 =======
+=======
+>>>>>>> fixed merge conflict
 #include "MetaballsExample.h"
 
 #include <glm/gtc/constants.hpp>
@@ -414,5 +417,8 @@ const gloperate::AbstractPerspectiveProjectionCapability * MetaballsExample::pro
 const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability() const
 {
 	return m_cameraCapability;
+<<<<<<< HEAD
 >>>>>>> added environment map
+=======
+>>>>>>> fixed merge conflict
 }
