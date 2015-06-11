@@ -46,7 +46,7 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 	m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT1, m_normalTexture, 0);
 
 	m_depthTexture = new globjects::Texture;
-	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_UNSIGNED_BYTE, nullptr);
+	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	m_fbo->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
 
 	m_program = new globjects::Program;
@@ -63,7 +63,7 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	{
 		m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 		m_normalTexture->image2D(0, gl::GL_RGB, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGB, gl::GL_UNSIGNED_BYTE, nullptr);
-		m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_UNSIGNED_BYTE, nullptr);
+		m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	}
 
 	std::array<glm::vec4, 20> m_metaballs = painter->getMetaballs();
@@ -98,10 +98,12 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 
 
 	//use shader programs
+	glm::vec4 eye = glm::vec4( painter->cameraCapability()->eye() , 1.0f);
+	eye = painter->projectionCapability()->projection() * painter->cameraCapability()->view() * eye;
 	m_program->use();
 	m_program->setUniform("view", painter->cameraCapability()->view());
 	m_program->setUniform("projection", painter->projectionCapability()->projection());
-	m_program->setUniform("eye_pos", painter->cameraCapability()->center());
+	m_program->setUniform("eye_pos", painter->cameraCapability()->eye());
 	m_program->setUniform("sphere_radius", sphere_radius);
 	m_program->setUniform("light_dir", light_dir);
 
