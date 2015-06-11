@@ -7,8 +7,6 @@
 #include <glbinding/gl/types.h>
 
 #include <globjects/base/ref_ptr.h>
-#include <globjects/Framebuffer.h>
-#include <globjects/Texture.h>
 
 #include <gloperate/painter/Painter.h>
 
@@ -28,6 +26,7 @@ namespace gloperate
 }
 
 class AbstractRenderer;
+class ScreenSpaceFluidRenderer;
 
 class MetaballsExample : public gloperate::Painter
 {
@@ -55,7 +54,7 @@ private:
 	bool m_other;
 	bool m_raycasting;
 	std::unique_ptr<AbstractRenderer> m_rayRenderer;
-	std::unique_ptr<AbstractRenderer> m_SSFRenderer;
+	std::unique_ptr<ScreenSpaceFluidRenderer> m_SSFRenderer;
 	FluidSimulator m_fluidSimulator;
 	bool m_SSF;
 
@@ -72,6 +71,4 @@ protected:
     gloperate::AbstractCameraCapability * m_cameraCapability;
 
     /* members */
-    globjects::ref_ptr<globjects::Framebuffer> m_fbo;
-    globjects::ref_ptr<globjects::Texture> m_texture;
 };
