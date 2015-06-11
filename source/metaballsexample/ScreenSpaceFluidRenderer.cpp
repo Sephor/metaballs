@@ -48,7 +48,6 @@ void ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 	//parameters
 	float sphere_radius = 1.0f;
 	glm::vec4 light_dir = glm::vec4(-1.0f, -1.0f, -1.0f, 1.0f);
-	//--//
 
 	m_vertices = new globjects::Buffer;
 	m_vertices->setData( m_metaballs , gl::GL_STATIC_DRAW);
@@ -69,6 +68,6 @@ void ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 	m_program->setUniform("sphere_radius", sphere_radius);
 	m_program->setUniform("light_dir", light_dir);
 
-	gl::glDrawArrays(gl::GL_POINTS, 0, m_metaballs.size());
+	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 	m_vao->unbind();
 }
