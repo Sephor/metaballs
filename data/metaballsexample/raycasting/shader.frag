@@ -1,17 +1,17 @@
-#version 150
+#version 150 core
 
 in vec3 v_sky;
 
 out vec4 color;
 
 uniform samplerCube skybox;
-uniform vec4 metaballs[16];
+uniform vec4 metaballs[20];
 uniform vec3 eye;
 
 const float INFINITY = 1e+4;
 const float EPSILON  = 1e-6;
 
-const int SIZE = 16;
+const int SIZE = 20;
 const float TRESHOLD = 0.66;
 const vec3 light = normalize(vec3(1.0, 0.0, -1.0));
 const vec3 ambient = vec3(0.3725, 0.3686, 0.4314);

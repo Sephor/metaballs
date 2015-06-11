@@ -33,7 +33,7 @@ MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 ,   m_viewportCapability(addCapability(new gloperate::ViewportCapability()))
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
-,	m_raycasting(true)
+,	m_raycasting(false)
 ,   m_SSF(false)
 {
 	setupPropertyGroup();
