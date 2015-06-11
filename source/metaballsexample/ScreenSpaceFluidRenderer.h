@@ -15,11 +15,11 @@ namespace globjects
 	class Buffer;
 }
 
-class RaycastingRenderer: public AbstractRenderer
+class ScreenSpaceFluidRenderer: public AbstractRenderer
 {
 public:
-	RaycastingRenderer();
-	~RaycastingRenderer();
+	ScreenSpaceFluidRenderer();
+	~ScreenSpaceFluidRenderer();
 
 	void initialize();
 	void draw(MetaballsExample * painter);
@@ -30,4 +30,6 @@ private:
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
 	globjects::ref_ptr<globjects::VertexArray> m_vao;
 	globjects::ref_ptr<globjects::Program> m_program;
+
+	
 };

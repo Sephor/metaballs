@@ -55,11 +55,14 @@ void RaycastingRenderer::initialize()
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/raycasting/shader.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/raycasting/shader.frag")
 	);
+
 }
 
 void RaycastingRenderer::draw(MetaballsExample * painter)
 {
+
 	m_vao->bind();
+
 	m_program->use();
 	m_program->setUniform("metaballs", painter->metaballs());
 	m_program->setUniform("eye", painter->cameraCapability()->eye());
@@ -68,3 +71,4 @@ void RaycastingRenderer::draw(MetaballsExample * painter)
 	
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 }
+

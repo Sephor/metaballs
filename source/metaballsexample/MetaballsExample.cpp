@@ -25,6 +25,7 @@
 
 #include "OtherRenderer.h"
 #include "RaycastingRenderer.h"
+#include "ScreenSpaceFluidRenderer.h"
 
 MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 :   Painter(resourceManager)
@@ -33,7 +34,7 @@ MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 ,   m_projectionCapability(addCapability(new gloperate::PerspectiveProjectionCapability(m_viewportCapability)))
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,	m_raycasting(true)
-,	m_other(false)
+,   m_SSF(false)
 {
 	setupPropertyGroup();
 }
@@ -68,14 +69,15 @@ void MetaballsExample::onInitialize()
     m_fbo = new globjects::Framebuffer;
     m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_texture, 0);
 
+
     gl::glClearColor(0.0, 0.0, 0.0, 1.0);
 
     m_fbo->unbind();
 
-	m_otherRenderer = std::make_unique<OtherRenderer>();
+	m_SSFRenderer = std::make_unique<ScreenSpaceFluidRenderer>();
 	m_rayRenderer = std::make_unique<RaycastingRenderer>();
 
-	m_otherRenderer->initialize();
+	m_SSFRenderer->initialize();
 	m_rayRenderer->initialize();
 }
 
@@ -92,24 +94,26 @@ void MetaballsExample::onPaint()
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
 	m_fbo->bind();
-	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
 	std::array<int, 4> rect = { { 0, 0, m_viewportCapability->width(), m_viewportCapability->height() } };
 
 	globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
 
 	if (m_raycasting)
+
 	{
+		gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 		m_rayRenderer->draw(this);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
 	}
-	if (m_other)
-	{
+	if (m_SSF)
+	{	
+		gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 		rect[0] += m_raycasting * static_cast<unsigned>(m_viewportCapability->width() / 2);
-			
-		m_otherRenderer->draw(this);
+		
+		m_SSFRenderer->draw(this);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		m_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
@@ -129,23 +133,25 @@ void MetaballsExample::setRaycasting(bool value)
 	//m_other = !m_raycasting;
 }
 
-bool MetaballsExample::getOther() const
+bool MetaballsExample::getSSF() const
 {
-	return m_other;
+	return m_SSF;
 }
 
-void MetaballsExample::setOther(bool value)
+void MetaballsExample::setSSF(bool value)
 {
-	m_other = value;
-	//m_raycasting = !m_other;
+	m_SSF = value;
+	//m_other = !m_raycasting;
 }
 
 void MetaballsExample::setupPropertyGroup()
 {
 	addProperty<bool>("Raycasting", this,
 		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting);
-	addProperty<bool>("Other", this,
-		&MetaballsExample::getOther, &MetaballsExample::setOther);
+
+	addProperty<bool>("ScreenSpaceFluid", this,
+		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
+
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const
@@ -168,7 +174,8 @@ const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability()
 	return m_cameraCapability;
 }
 
-const std::array<glm::vec4, 20> & MetaballsExample::metaballs() const
+const std::array<glm::vec4, METABALLSCOUNT> & MetaballsExample::metaballs() const
 {
 	return m_metaballs;
+
 }
