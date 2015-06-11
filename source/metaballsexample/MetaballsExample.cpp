@@ -83,6 +83,8 @@ void MetaballsExample::onInitialize()
 
 void MetaballsExample::onPaint()
 {
+	m_fluidSimulator.update();
+
 	if (m_viewportCapability->hasChanged())
 	{
 		m_texture->image2D(0, gl::GL_RGBA, m_viewportCapability->width(), m_viewportCapability->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
