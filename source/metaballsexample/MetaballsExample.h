@@ -143,6 +143,10 @@ public:
 	void setOther(bool value);
 	bool getRaycasting() const;
 	void setRaycasting(bool value);
+	bool getSSF() const;
+	void setSSF(bool value);
+
+	const std::array<glm::vec4, 20> & getMetaballs() const;
 
 	const gloperate::AbstractTargetFramebufferCapability * targetFramebufferCapability() const;
 	const gloperate::AbstractViewportCapability * viewportCapability() const;
@@ -153,9 +157,9 @@ private:
 	bool m_other;
 	bool m_raycasting;
 	std::unique_ptr<AbstractRenderer> m_rayRenderer;
-	std::unique_ptr<AbstractRenderer> m_otherRenderer;
+	std::unique_ptr<AbstractRenderer> m_SSFRenderer;
 	FluidSimulator m_fluidSimulator;
-
+	bool m_SSF;
 
 protected:
     virtual void onInitialize() override;

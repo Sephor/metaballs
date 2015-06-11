@@ -22,9 +22,9 @@ FluidSimulator::~FluidSimulator()
 	
 }
 
-std::vector<glm::vec4> FluidSimulator::metaballs()
+const std::array<glm::vec4, 20> FluidSimulator::getMetaballs() const
 {
-	std::vector<glm::vec4> temp(m_metaballs.size());
+	std::array<glm::vec4, 20> temp;
 
 	for (int i = 0; i < m_metaballs.size(); i++)
 	{

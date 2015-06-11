@@ -236,8 +236,9 @@ const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability()
 <<<<<<< HEAD
 }
 
-const std::array<glm::vec4, METABALLSCOUNT> & MetaballsExample::metaballs() const
+const std::array<glm::vec4, 20> & MetaballsExample::getMetaballs() const
 {
+<<<<<<< HEAD
 	return m_metaballs;
 <<<<<<< HEAD
 =======
@@ -421,4 +422,7 @@ const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability()
 >>>>>>> added environment map
 =======
 >>>>>>> fixed merge conflict
+=======
+	return m_fluidSimulator.getMetaballs();
+>>>>>>> fixed metaballsexample and raycastingrenderer
 }

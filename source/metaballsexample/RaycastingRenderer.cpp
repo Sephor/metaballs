@@ -179,15 +179,14 @@ void RaycastingRenderer::initialize()
 }
 
 void RaycastingRenderer::draw(
-	MetaballsExample * painter, 
-	const std::vector<glm::vec4> & metaballs)
+	MetaballsExample * painter)
 {
 	m_vao->bind();
 
 	m_skybox->bindActive(gl::GL_TEXTURE0);
 
 	m_program->use();
-	m_program->setUniform("metaballs", metaballs);
+	m_program->setUniform("metaballs", painter->getMetaballs());
 	m_program->setUniform("eye", painter->cameraCapability()->eye());
 	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_program->setUniform("view", painter->cameraCapability()->view());

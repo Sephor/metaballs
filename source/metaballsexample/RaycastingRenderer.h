@@ -59,9 +59,7 @@ public:
 	~RaycastingRenderer();
 
 	void initialize();
-	void draw(
-		MetaballsExample * painter,
-		const std::vector<glm::vec4> & metaballs);
+	void draw(MetaballsExample * painter);
 
 private:
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
