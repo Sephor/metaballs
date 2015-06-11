@@ -44,7 +44,7 @@ void ScreenSpaceFluidRenderer::initialize()
 void ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 {
 
-	std::array<glm::vec4> m_metaballs[20] = painter->getMetaballs();
+	std::array<glm::vec4, 20> m_metaballs = painter->getMetaballs();
 	//parameters
 	float sphere_radius = 1.0f;
 	glm::vec4 light_dir = glm::vec4(-1.0f, -1.0f, -1.0f, 1.0f);
