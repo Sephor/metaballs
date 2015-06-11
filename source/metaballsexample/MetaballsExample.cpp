@@ -76,7 +76,7 @@ void MetaballsExample::onInitialize()
 
 void MetaballsExample::onPaint()
 {
-	m_fluidSimulator.update(0.01f); //TODO: get actual elapsed time
+	m_fluidSimulator.update();
 
 	if (m_viewportCapability->hasChanged())
 	{

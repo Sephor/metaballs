@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#include <gloperate-qt\QtTextureLoader.h>
+//#include <gloperate-qt\gloperate-qt_api.h>
+
 #include <glm/ext.hpp>
 
 #include <glbinding/gl/enum.h>
@@ -15,6 +18,7 @@
 #include <globjects/Buffer.h>
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
+#include <globjects/Texture.h>
 #include <globjects/VertexArray.h>
 #include <globjects/VertexAttributeBinding.h>
 
@@ -55,6 +59,33 @@ void RaycastingRenderer::initialize()
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/raycasting/shader.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/raycasting/shader.frag")
 	);
+
+	std::vector<std::string> cubemap(6);
+	cubemap[0] = "data/metaballsexample/raycasting/env_cube_px.png";
+	cubemap[1] = "data/metaballsexample/raycasting/env_cube_nx.png";
+	cubemap[2] = "data/metaballsexample/raycasting/env_cube_ny.png";
+	cubemap[3] = "data/metaballsexample/raycasting/env_cube_py.png";
+	cubemap[4] = "data/metaballsexample/raycasting/env_cube_pz.png";
+	cubemap[5] = "data/metaballsexample/raycasting/env_cube_nz.png";
+
+	m_skybox = globjects::Texture::createDefault(gl::GL_TEXTURE_CUBE_MAP);
+
+	gloperate_qt::QtTextureLoader loader;
+	globjects::ref_ptr<globjects::Texture> face = new globjects::Texture;
+	for (unsigned int i = 0; i < cubemap.size(); ++i)
+	{
+		face = loader.load(cubemap[i], nullptr);
+		m_skybox->image2D(
+			gl::GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,	
+			0, 
+			gl::GL_RGBA, 
+			1024, //face->getParameter(gl::GL_TEXTURE_WIDTH), 
+			1024, //face->getParameter(gl::GL_TEXTURE_HEIGHT), 
+			0, 
+			gl::GL_RGBA, 
+			gl::GL_UNSIGNED_BYTE, 
+			face->getImage(0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE).data());
+	}
 }
 
 void RaycastingRenderer::draw(
@@ -62,11 +93,20 @@ void RaycastingRenderer::draw(
 	const std::vector<glm::vec4> & metaballs)
 {
 	m_vao->bind();
+
+	m_skybox->bindActive(gl::GL_TEXTURE0);
+
 	m_program->use();
 	m_program->setUniform("metaballs", metaballs);
 	m_program->setUniform("eye", painter->cameraCapability()->eye());
 	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_program->setUniform("view", painter->cameraCapability()->view());
+	int test = m_program->getUniformLocation("skybox");
+	m_program->setUniform(test, 0);
 	
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+
+	m_program->release();
+
+	m_skybox->unbindActive(gl::GL_TEXTURE0);
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <vector>
 
 #include <glm/vec3.hpp>
@@ -19,9 +20,11 @@ public:
 	};
 
 	std::vector<glm::vec4> metaballs();
-	void update(float elapsedTime);
+	void update();
 
 private:
 	const glm::vec3 m_gravConstant;
 	std::vector<Metaball> m_metaballs;
+
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> m_lastTime;
 };

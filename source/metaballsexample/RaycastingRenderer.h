@@ -13,6 +13,7 @@ namespace globjects
 	class Program;
 	class VertexArray;
 	class Buffer;
+	class Texture;
 }
 
 class RaycastingRenderer: public AbstractRenderer
@@ -30,4 +31,5 @@ private:
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
 	globjects::ref_ptr<globjects::VertexArray> m_vao;
 	globjects::ref_ptr<globjects::Program> m_program;
+	globjects::ref_ptr<globjects::Texture> m_skybox;
 };
