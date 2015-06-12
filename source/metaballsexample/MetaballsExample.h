@@ -43,6 +43,8 @@ public:
 	void setRaycasting(bool value);
 	bool getSSF() const;
 	void setSSF(bool value);
+	bool getSimulationStatus() const;
+	void setSimulationStatus(bool value);
 
 	const std::array<glm::vec4, 20> getMetaballs() const;
 

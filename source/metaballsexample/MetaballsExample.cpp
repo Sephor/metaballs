@@ -141,6 +141,16 @@ void MetaballsExample::setSSF(bool value)
 	//m_other = !m_raycasting;
 }
 
+bool MetaballsExample::getSimulationStatus() const
+{
+	return m_fluidSimulator.getIsRunning();
+}
+
+void MetaballsExample::setSimulationStatus(bool value)
+{
+	m_fluidSimulator.setIsRunning(value);
+}
+
 void MetaballsExample::setupPropertyGroup()
 {
 	addProperty<bool>("Raycasting", this,
@@ -149,6 +159,8 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 
+	addProperty<bool>("Simulate", this,
+		&MetaballsExample::getSimulationStatus, &MetaballsExample::setSimulationStatus);
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const
