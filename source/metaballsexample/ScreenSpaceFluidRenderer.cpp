@@ -55,6 +55,12 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shader.frag"),
 		globjects::Shader::fromFile(gl::GL_GEOMETRY_SHADER, "data/metaballsexample/screen_space_fluid/quad_emmiting.geom")
 	);
+
+	m_programSmoothing = new globjects::Program;
+	m_programSmoothing->attach(
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/shaderSmoothing.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shaderSmoothing.frag")
+	);
 }
 
 globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
@@ -109,6 +115,8 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 	m_vao->unbind();
+
+	m_programSmoothing->use();
 	
 	gl::glDisable(gl::GL_DEPTH_TEST);
 	m_fbo->unbind();
