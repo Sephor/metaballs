@@ -118,6 +118,7 @@ void MetaballsExample::setSSF(bool value)
 	//m_other = !m_raycasting;
 }
 
+<<<<<<< HEAD
 bool MetaballsExample::getBlur() const
 {
 	return m_blur;
@@ -126,6 +127,16 @@ bool MetaballsExample::getBlur() const
 void MetaballsExample::setBlur(bool value)
 {
 	m_blur = value;
+=======
+bool MetaballsExample::getSimulationStatus() const
+{
+	return m_fluidSimulator.getIsRunning();
+}
+
+void MetaballsExample::setSimulationStatus(bool value)
+{
+	m_fluidSimulator.setIsRunning(value);
+>>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 }
 
 void MetaballsExample::setupPropertyGroup()
@@ -136,8 +147,13 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 
+<<<<<<< HEAD
 	addProperty<bool>("Blurring", this,
 		&MetaballsExample::getBlur, &MetaballsExample::setBlur);
+=======
+	addProperty<bool>("Simulate", this,
+		&MetaballsExample::getSimulationStatus, &MetaballsExample::setSimulationStatus);
+>>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const

@@ -1,23 +1,32 @@
 #include "FluidSimulator.h"
 
 #include <iostream>
+#include <glm\geometric.hpp>
 
-FluidSimulator::FluidSimulator() : m_gravConstant(0.f, -.1f, 0.f)
+FluidSimulator::FluidSimulator() : m_gravConstant(0.f, -.3f, 0.f), m_isRunning(false)
 {
+	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
+	m_groundPlane.distance = .0f;
 	m_metaballs = std::vector<Metaball>();
 	for (int i = 0; i < 20; i++)
 		for (int j = 0; j < 20; j++)
 	{
 		Metaball m;
+<<<<<<< HEAD
 		m.position = glm::vec3(i * 0.9f, j* 0.9f, .0f);
+=======
+		m.position = glm::vec3(i * 0.75f, 3.0f + i * 0.75f, .0f);
+>>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 		m.radius = 1.f;
 		m.velocity = glm::vec3(.0f);
 		m_metaballs.push_back(m);
 	}
+<<<<<<< HEAD
 
 	m_lastTime = std::chrono::high_resolution_clock::now();
+=======
+>>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 }
-
 
 FluidSimulator::~FluidSimulator()
 {
@@ -36,14 +45,66 @@ const std::array<glm::vec4, 400> FluidSimulator::getMetaballs() const
 	return temp;
 }
 
+void FluidSimulator::startSimulation()
+{
+	m_isRunning = true;
+	m_lastTime = std::chrono::high_resolution_clock::now();
+}
+
+void FluidSimulator::stopSimulation()
+{
+	m_isRunning = false;
+}
+
+bool FluidSimulator::getIsRunning() const
+{
+	return m_isRunning;
+}
+
+void FluidSimulator::setIsRunning(bool value)
+{
+	if (m_isRunning)
+		stopSimulation();
+	else
+		startSimulation();
+}
+
 void FluidSimulator::update()
 {
+	if (!m_isRunning) return;
 	float elapsedTime = std::chrono::duration<float, std::ratio<1, 1>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
 	m_lastTime = std::chrono::high_resolution_clock::now();
 
 	for (auto & metaball : m_metaballs)
 	{
-		metaball.velocity += m_gravConstant * elapsedTime;
-		metaball.position += metaball.velocity * elapsedTime;
+		if (doesCollide(metaball, m_groundPlane, elapsedTime))
+		{
+			metaball.position += metaball.velocity * collisionTime(metaball, m_groundPlane);
+			metaball.velocity = glm::vec3(.0f);
+		}
+		else
+		{
+			metaball.position += metaball.velocity * elapsedTime;
+			metaball.velocity += m_gravConstant * elapsedTime;
+		}
 	}
+}
+
+bool FluidSimulator::doesCollide(const Metaball & metaball, const Plane & plane, float deltaTime)
+{
+	glm::vec3 latePosition = metaball.position + metaball.velocity * deltaTime;
+	float lateDistanceToPlane = glm::dot(latePosition, plane.normal) - plane.distance;
+	
+	return lateDistanceToPlane <= .0f;
+}
+
+float FluidSimulator::collisionTime(const Metaball & metaball, const Plane & plane)
+{
+	float positionDotNormal = glm::dot(metaball.position, plane.normal);
+	float velocityDotNormal = glm::dot(metaball.velocity, plane.normal);
+	if (fabs(velocityDotNormal) <= 1.0e-10)
+	{
+		return .0f;
+	}
+	return - positionDotNormal / velocityDotNormal;
 }
