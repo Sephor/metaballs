@@ -127,7 +127,7 @@ namespace gloperate
     class AbstractCameraCapability;
 }
 
-class AbstractRenderer;
+class RaycastingRenderer;
 class ScreenSpaceFluidRenderer;
 
 class MetaballsExample : public gloperate::Painter
@@ -155,7 +155,7 @@ public:
 private:
 	bool m_other;
 	bool m_raycasting;
-	std::unique_ptr<AbstractRenderer> m_rayRenderer;
+	std::unique_ptr<RaycastingRenderer> m_rayRenderer;
 	std::unique_ptr<ScreenSpaceFluidRenderer> m_SSFRenderer;
 	FluidSimulator m_fluidSimulator;
 	bool m_SSF;
