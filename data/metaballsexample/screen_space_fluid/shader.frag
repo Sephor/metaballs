@@ -1,4 +1,5 @@
 #version 150 core
+#extension GL_ARB_explicit_attrib_location : require
 
 uniform vec3 eye_pos;
 uniform float sphere_radius;
@@ -8,8 +9,8 @@ uniform vec4 light_dir;
 
 in vec2 textcoord;
 in vec3 eyeSpacePos;
-out vec4 color;
-vec3 normal; 
+layout(location = 0) out vec4 color;
+layout(location = 1) out vec3 normal; 
 
 void main()
 {
