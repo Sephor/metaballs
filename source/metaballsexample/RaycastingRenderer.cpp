@@ -16,6 +16,7 @@
 #include <gloperate/painter/ViewportCapability.h>
 
 #include <globjects/Buffer.h>
+#include <globjects/Framebuffer.h>
 #include <globjects/Program.h>
 #include <globjects/Shader.h>
 #include <globjects/Texture.h>
@@ -35,8 +36,10 @@ RaycastingRenderer::~RaycastingRenderer()
 }
 
 
-void RaycastingRenderer::initialize()
+void RaycastingRenderer::initialize(MetaballsExample * painter)
 {
+	setupFramebuffer(painter);
+
 	m_vertices = new globjects::Buffer;
 	m_vertices->setData(std::vector<float>{
 		-1.f, 1.f,
@@ -88,9 +91,10 @@ void RaycastingRenderer::initialize()
 	}
 }
 
-void RaycastingRenderer::draw(
+globjects::Framebuffer * RaycastingRenderer::draw(
 	MetaballsExample * painter)
 {
+	m_fbo->bind(),
 	m_vao->bind();
 
 	m_skybox->bindActive(gl::GL_TEXTURE0);
@@ -108,4 +112,30 @@ void RaycastingRenderer::draw(
 	m_program->release();
 
 	m_skybox->unbindActive(gl::GL_TEXTURE0);
+
+	m_fbo->unbind();
+
+	return m_fbo;
+}
+
+void RaycastingRenderer::setupFramebuffer(MetaballsExample * painter)
+{
+	m_fbo = new globjects::Framebuffer;
+
+	m_colorTexture = new globjects::Texture;
+	m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+	m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture, 0);
+
+	//TODO: Herausfinden warum es nicht mit glGetfloatv(GL_VIEWPORT) funktioniert
+	m_depthTexture = new globjects::Texture;
+	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+	m_fbo->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
+
+	//set clearcolors and enable depthtest
+	m_fbo->bind();
+	gl::glClearColor(0.f, 0.f, 0.f, 1.f);
+	gl::glClearDepth(1.f);
+	gl::glEnable(gl::GL_DEPTH_TEST);
+	gl::glDepthFunc(gl::GL_LESS);
+	m_fbo->unbind();
 }

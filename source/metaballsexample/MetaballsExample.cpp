@@ -50,6 +50,9 @@ void MetaballsExample::onInitialize()
 {
     globjects::init();
 
+	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
+	gl::glClearDepth(1.f);
+
 #ifdef __APPLE__
     globjects::Shader::clearGlobalReplacements();
     globjects::Shader::globalReplace("#version 140", "#version 150");
@@ -61,7 +64,7 @@ void MetaballsExample::onInitialize()
 	m_rayRenderer = std::make_unique<RaycastingRenderer>();
 
 	m_SSFRenderer->initialize(this);
-	m_rayRenderer->initialize();
+	m_rayRenderer->initialize(this);
 }
 
 void MetaballsExample::onPaint()
@@ -69,39 +72,29 @@ void MetaballsExample::onPaint()
 	//m_fluidSimulator.update();
 
 	gl::glViewport(0, 0, m_viewportCapability->width(), m_viewportCapability->height());
-	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
-	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 
 	std::array<int, 4> rect = { { 0, 0, m_viewportCapability->width(), m_viewportCapability->height() } };
 
 	globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
-	globjects::ref_ptr<globjects::Framebuffer> tmp_fbo;
+	globjects::Framebuffer * tmp_fbo = nullptr;
 
 	if (m_raycasting)
-
 	{
-		gl::glClear(gl::GL_COLOR_BUFFER_BIT);
-		m_rayRenderer->draw(this);
+		tmp_fbo = m_rayRenderer->draw(this);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
-		tmp_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
+		tmp_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT, gl::GL_NEAREST);
 	}
+
 	if (m_SSF)
 	{	
-		gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 		rect[0] += m_raycasting * static_cast<unsigned>(m_viewportCapability->width() / 2);
 		
-		tmp_fbo = globjects::ref_ptr<globjects::Framebuffer>(m_SSFRenderer->draw(this));
+		tmp_fbo = m_SSFRenderer->draw(this);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
-		tmp_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT, gl::GL_LINEAR);
-	}
-
-	if (m_viewportCapability->hasChanged())
-	{
-		//m_texture->image2D(0, gl::GL_RGBA, m_viewportCapability->width(), m_viewportCapability->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-
-		m_viewportCapability->setChanged(false);
+		tmp_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT, gl::GL_NEAREST);
 	}
 
 	globjects::Framebuffer::unbind();
