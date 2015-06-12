@@ -13,7 +13,8 @@ vec3 normal;
 
 void main()
 {
-	vec4 light = normalize(light_dir);
+	vec3 light = normalize(light_dir).xyz;
+	
 	//calculate eyespace normal from textcoord	
 	normal.xy = textcoord*2.0 - 1.0;
 	float radius = dot(normal.xy, normal.xy);
@@ -22,12 +23,13 @@ void main()
 	normal.z = -sqrt(1.0 - radius);
 	
 	//calculate depth
-	vec4 fragmentPos = vec4( eyeSpacePos + normal*sphere_radius, 1.0);
+	vec4 fragmentPos = vec4( eyeSpacePos - normal*sphere_radius, 1.0);
 	vec4 clipSpacePos = projection * fragmentPos;
 	gl_FragDepth = clipSpacePos.z / clipSpacePos.w;
 	
-	float diffuse = max(0.0, dot(vec4(normal, 1.0), light));
+	float diffuse = max(0.0, dot(normal , light));
 	color = vec4(0.5, 0.5, 0.5, 1.0);
 	color *= diffuse;
-	color = vec4(gl_FragCoord.z / gl_FragCoord.w);
+	color += vec4(0.1, 0.1, 0.1, 1.0);
+	//color = vec4(gl_FragCoord.z / gl_FragCoord.w);
 }
