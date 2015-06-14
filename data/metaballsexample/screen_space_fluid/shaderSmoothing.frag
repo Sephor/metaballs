@@ -1,10 +1,16 @@
 #version 150 core
 #extension GL_ARB_explicit_attrib_location : require
 
-layout(location = 0) out vec4 color;
-layout(location = 1) out vec3 normal; 
+uniform sampler2D colorTexture;
+uniform sampler2D normalTexture;
+uniform sampler2D depthTexture;
+
+in vec2 textCoord;
+out vec4 color;
 
 void main()
 {
-	color = vec4(0.5, 0.5, 0.5, 1.0);
+	color = texture(colorTexture, textCoord);
+	//color = texture(normalTexture, textCoord);
+	//color = texture(depthTexture, textCoord);
 }

@@ -28,7 +28,9 @@ public:
 
 private:
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
+	globjects::ref_ptr<globjects::Buffer> m_verticesPlan;
 	globjects::ref_ptr<globjects::VertexArray> m_vao;
+	globjects::ref_ptr<globjects::VertexArray> m_vaoPlan;
 	globjects::ref_ptr<globjects::Program> m_program;
 	globjects::ref_ptr<globjects::Program> m_programSmoothing;
 	globjects::ref_ptr<globjects::Framebuffer> m_fbo;	
