@@ -10,14 +10,14 @@ uniform vec4 light_dir;
 in vec2 textcoord;
 in vec3 eyeSpacePos;
 layout(location = 0) out vec4 color;
-layout(location = 1) out vec4 normal; 
+
+vec3 normal; 
 
 void main()
 {
 	vec3 light = normalize(light_dir).xyz;
 	
 	//calculate eyespace normal from textcoord	
-	normal.w = 1.0;
 	normal.xy = textcoord*2.0 - 1.0;
 	float radius = dot(normal.xy, normal.xy);
 	if (radius > 1.0) discard; // kill pixels outside circle
@@ -29,7 +29,7 @@ void main()
 	vec4 clipSpacePos = projection * fragmentPos;
 	gl_FragDepth = clipSpacePos.z / clipSpacePos.w;
 	
-	float diffuse = max(0.0, dot(normal.xyz , light));
+	float diffuse = max(0.0, dot(normal , light));
 	color = vec4(0.5, 0.5, 0.5, 1.0);
 	color *= diffuse;
 	color += vec4(0.1, 0.1, 0.1, 1.0);
