@@ -35,7 +35,7 @@ ScreenSpaceFluidRenderer::~ScreenSpaceFluidRenderer()
 void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 {
 	m_fbo = new globjects::Framebuffer;
-
+	
 	//Textures
 	m_colorTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
 	m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
@@ -111,11 +111,11 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	m_fbo->bind();
 	gl::glDisable(gl::GL_CULL_FACE);
 
-	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
-	gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
 	gl::glClearDepth(1.0);
+	gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
 
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LESS);
@@ -134,8 +134,10 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	m_vao->unbind();
 	m_program->release();
 
-	gl::glDisable(gl::GL_DEPTH_TEST);
-	
+
+	gl::glDepthFunc(gl::GL_ALWAYS);
+	//gl::glDisable(gl::GL_DEPTH_TEST);
+
 	m_programSmoothing->use();
 	m_vaoPlan->bind();
 
@@ -147,10 +149,10 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	m_programSmoothing->setUniform( m_programSmoothing->getUniformLocation("depthTexture"), 1);
 	//--//
 	m_programSmoothing->setUniform("maxDepth", 1.0f);
-	m_programSmoothing->setUniform("texelSize", 1.0f / painter->viewportCapability()->width());
+	m_programSmoothing->setUniform("texelSize", 0.5f / (float)painter->viewportCapability()->width());
 	m_programSmoothing->setUniform("eye", painter->cameraCapability()->eye());
 	m_programSmoothing->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
-	m_programSmoothing->setUniform("view", painter->cameraCapability()->view());
+	m_programSmoothing->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 	m_depthTexture->unbind();
@@ -158,7 +160,7 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	
 	m_vaoPlan->unbind();
 	m_programSmoothing->release();
-
+	gl::glDisable(gl::GL_DEPTH_TEST);
 	m_fbo->unbind();
 
 	return m_fbo;
