@@ -36,6 +36,5 @@ private:
 	globjects::ref_ptr<globjects::Framebuffer> m_fbo;	
 
 	globjects::ref_ptr<globjects::Texture> m_colorTexture;
-	globjects::ref_ptr<globjects::Texture> m_normalTexture;
 	globjects::ref_ptr<globjects::Texture> m_depthTexture;
 };

@@ -41,10 +41,6 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 	m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 	m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture, 0);
 
-	m_normalTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_normalTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-	m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT1, m_normalTexture, 0);
-
 	m_depthTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
 	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	m_fbo->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
@@ -91,7 +87,6 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	if (painter->viewportCapability()->hasChanged())
 	{
 		m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-		m_normalTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 		m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	}
 
@@ -148,23 +143,21 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	m_colorTexture->bindActive(gl::GL_TEXTURE0);
 	m_programSmoothing->setUniform( m_programSmoothing->getUniformLocation("colorTexture") , 0);
 	
-	m_normalTexture->bindActive(gl::GL_TEXTURE1);
-	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("normalTexture"), 1);
-	m_depthTexture->bindActive(gl::GL_TEXTURE2);
-	m_programSmoothing->setUniform( m_programSmoothing->getUniformLocation("depthTexture"), 2);
+	m_depthTexture->bindActive(gl::GL_TEXTURE1);
+	m_programSmoothing->setUniform( m_programSmoothing->getUniformLocation("depthTexture"), 1);
 	//--//
+	m_programSmoothing->setUniform("maxDepth", 1.0f);
+	m_programSmoothing->setUniform("texelSize", 1.0f / painter->viewportCapability()->width());
 	m_programSmoothing->setUniform("eye", painter->cameraCapability()->eye());
 	m_programSmoothing->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_programSmoothing->setUniform("view", painter->cameraCapability()->view());
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 	m_depthTexture->unbind();
-	m_normalTexture->unbind();
 	m_colorTexture->unbind();
 	
 	m_vaoPlan->unbind();
 	m_programSmoothing->release();
-
 
 	m_fbo->unbind();
 
