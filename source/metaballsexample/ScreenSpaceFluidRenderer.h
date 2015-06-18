@@ -26,6 +26,7 @@ public:
 	void initialize(MetaballsExample * painter);
 	globjects::Framebuffer* draw(MetaballsExample * painter);
 
+
 private:
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
 	globjects::ref_ptr<globjects::Buffer> m_verticesPlan;
@@ -33,8 +34,10 @@ private:
 	globjects::ref_ptr<globjects::VertexArray> m_vaoPlan;
 	globjects::ref_ptr<globjects::Program> m_program;
 	globjects::ref_ptr<globjects::Program> m_programSmoothing;
+	globjects::ref_ptr<globjects::Program> m_programFinal;
 	globjects::ref_ptr<globjects::Framebuffer> m_fbo;	
 
 	globjects::ref_ptr<globjects::Texture> m_colorTexture;
 	globjects::ref_ptr<globjects::Texture> m_depthTexture;
+	globjects::ref_ptr<globjects::Texture> m_testTexture;
 };

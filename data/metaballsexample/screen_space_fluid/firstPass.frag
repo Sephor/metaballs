@@ -1,14 +1,16 @@
 #version 150 core
 #extension GL_ARB_explicit_attrib_location : require
 
-uniform vec3 eye_pos;
 uniform float sphere_radius;
 uniform mat4 projection;
 uniform mat4 view;
 uniform vec4 light_dir;
+uniform float far;
+uniform float near;
 
 in vec2 textcoord;
 in vec3 eyeSpacePos;
+
 layout(location = 0) out vec4 color;
 
 vec3 normal; 
@@ -27,8 +29,11 @@ void main()
 	//calculate depth
 	vec4 fragmentPos = vec4( eyeSpacePos - normal.xyz*sphere_radius, 1.0);
 	vec4 clipSpacePos = projection * fragmentPos;
-	gl_FragDepth = clipSpacePos.z / clipSpacePos.w;
-	
+	float depth = clipSpacePos.z / clipSpacePos.w;
+	gl_FragDepth = depth;
+	//liarize depth
+	//gl_FragDepth = (2 * near) / (far + near - depth * (far - near));
+
 	float diffuse = max(0.0, dot(normal , light));
 	color = vec4(0.5, 0.5, 0.5, 1.0);
 	color *= diffuse;

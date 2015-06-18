@@ -152,7 +152,7 @@ const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability()
 	return m_cameraCapability;
 }
 
-const std::array<glm::vec4, 20> MetaballsExample::getMetaballs() const
+const std::array<glm::vec4, 400> MetaballsExample::getMetaballs() const
 {
 	return m_fluidSimulator.getMetaballs();
 }

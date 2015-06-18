@@ -4,6 +4,8 @@
 
 #include <glm/ext.hpp>
 
+#include <gloperate-qt\QtTextureLoader.h>
+
 #include <glbinding/gl/enum.h>
 #include <glbinding/gl/bitfield.h>
 #include <glbinding/gl/functions.h>
@@ -44,6 +46,13 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 	m_depthTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
 	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	m_fbo->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
+//testing//
+	m_testTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_testTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+	m_fbo->attachTexture(gl::GL_COLOR_ATTACHMENT2, m_testTexture, 0);
+	gloperate_qt::QtTextureLoader loader;
+	m_testTexture = loader.load("data/metaballsexample/screen_space_fluid/test.png" , nullptr);
+//!testing
 	//--//
 
 	//setup plan for second render pass
@@ -67,18 +76,17 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 	//setup programs
 	m_program = new globjects::Program;
 	m_program->attach(
-		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/shader.vert"),
-		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shader.frag"),
-		globjects::Shader::fromFile(gl::GL_GEOMETRY_SHADER, "data/metaballsexample/screen_space_fluid/quad_emmiting.geom")
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/firstPass.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/firstPass.frag"),
+		globjects::Shader::fromFile(gl::GL_GEOMETRY_SHADER, "data/metaballsexample/screen_space_fluid/firstPass.geom")
 	);
 	
 
 	m_programSmoothing = new globjects::Program;
 	m_programSmoothing->attach(
-		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/shaderSmoothing.vert"),
-		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/shaderSmoothing.frag")
-	);
-	
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/secPass.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/secPass.frag")
+	);	
 	//--//
 }
 
@@ -90,7 +98,7 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 		m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	}
 
-	std::array<glm::vec4, 20> m_metaballs = painter->getMetaballs();
+	std::array<glm::vec4, 400> m_metaballs = painter->getMetaballs();
 	//parameters
 	float sphere_radius = 1.0f;
 	glm::vec4 light_dir = glm::vec4(-1.0f, -1.0f, -1.0f, 1.0f);
@@ -120,28 +128,29 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LESS);
 
-
 	//use shader programs
-	
+	//1. rendering Pass
 	m_program->use();
 	m_program->setUniform("view", painter->cameraCapability()->view());
 	m_program->setUniform("projection", painter->projectionCapability()->projection());
-	m_program->setUniform("eye_pos", painter->cameraCapability()->eye());
 	m_program->setUniform("sphere_radius", sphere_radius);
 	m_program->setUniform("light_dir", light_dir);
+	m_program->setUniform("near", painter->projectionCapability()->zNear());
+	m_program->setUniform("far", painter->projectionCapability()->zFar());
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 	m_vao->unbind();
 	m_program->release();
 
-
-	gl::glDepthFunc(gl::GL_ALWAYS);
-	//gl::glDisable(gl::GL_DEPTH_TEST);
+	gl::glDisable(gl::GL_DEPTH_TEST);
 
 	m_programSmoothing->use();
 	m_vaoPlan->bind();
 
+	gl::glDrawBuffer;
 	//bind textures
+
+	//2. rendering Pass
 	m_colorTexture->bindActive(gl::GL_TEXTURE0);
 	m_programSmoothing->setUniform( m_programSmoothing->getUniformLocation("colorTexture") , 0);
 	
@@ -149,19 +158,20 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	m_programSmoothing->setUniform( m_programSmoothing->getUniformLocation("depthTexture"), 1);
 	//--//
 	m_programSmoothing->setUniform("maxDepth", 1.0f);
-	m_programSmoothing->setUniform("texelSize", 0.5f / (float)painter->viewportCapability()->width());
 	m_programSmoothing->setUniform("eye", painter->cameraCapability()->eye());
 	m_programSmoothing->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_programSmoothing->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
-
+	
+	//drawing
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+	
+	//release
 	m_depthTexture->unbind();
 	m_colorTexture->unbind();
-	
-	m_vaoPlan->unbind();
 	m_programSmoothing->release();
-	gl::glDisable(gl::GL_DEPTH_TEST);
+	m_vaoPlan->unbind();
 	m_fbo->unbind();
 
 	return m_fbo;
 }
+

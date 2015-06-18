@@ -43,7 +43,7 @@ public:
 	bool getSSF() const;
 	void setSSF(bool value);
 
-	const std::array<glm::vec4, 20> getMetaballs() const;
+	const std::array<glm::vec4, 400> getMetaballs() const;
 
 	const gloperate::AbstractTargetFramebufferCapability * targetFramebufferCapability() const;
 	const gloperate::AbstractViewportCapability * viewportCapability() const;
