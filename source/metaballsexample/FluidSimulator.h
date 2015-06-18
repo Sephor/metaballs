@@ -20,7 +20,7 @@ public:
 		glm::vec3 velocity;
 	};
 
-	const std::array<glm::vec4, 20> getMetaballs() const;
+	const std::array<glm::vec4, 400> getMetaballs() const;
 	void update();
 
 private:

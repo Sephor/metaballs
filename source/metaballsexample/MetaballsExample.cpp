@@ -247,7 +247,7 @@ const gloperate::AbstractCameraCapability * MetaballsExample::cameraCapability()
 <<<<<<< HEAD
 }
 
-const std::array<glm::vec4, 20> MetaballsExample::getMetaballs() const
+const std::array<glm::vec4, 400> MetaballsExample::getMetaballs() const
 {
 <<<<<<< HEAD
 	return m_metaballs;
