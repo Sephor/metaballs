@@ -223,7 +223,12 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 
+<<<<<<< HEAD
 >>>>>>> fixed merge issues & initialize SSFR
+=======
+	
+
+>>>>>>> add bluring and difuse shading
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const

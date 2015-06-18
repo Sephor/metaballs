@@ -26,8 +26,12 @@ public:
 	void initialize(MetaballsExample * painter);
 	globjects::Framebuffer* draw(MetaballsExample * painter);
 
+	void setBlurFilterSize(int);
+	int getBlurFilterSize() const;
 
 private:
+	int blurFilterSize;
+
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
 	globjects::ref_ptr<globjects::Buffer> m_verticesPlan;
 	globjects::ref_ptr<globjects::VertexArray> m_vao;
