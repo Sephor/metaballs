@@ -130,6 +130,8 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 
+	
+
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const

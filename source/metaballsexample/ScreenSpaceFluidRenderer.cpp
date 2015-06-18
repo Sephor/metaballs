@@ -24,7 +24,7 @@
 
 #include "MetaballsExample.h"
 
-ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
+ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer() : blurFilterSize{ 0 }
 {
 
 }
@@ -158,7 +158,7 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	m_programSmoothing->setUniform( m_programSmoothing->getUniformLocation("depthTexture"), 1);
 	//--//
 	m_programSmoothing->setUniform("maxDepth", 1.0f);
-	m_programSmoothing->setUniform("eye", painter->cameraCapability()->eye());
+	m_programSmoothing->setUniform("light_dir", light_dir);
 	m_programSmoothing->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_programSmoothing->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
 	
@@ -175,3 +175,10 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	return m_fbo;
 }
 
+void ScreenSpaceFluidRenderer::setBlurFilterSize(int size){
+	this->blurFilterSize = size;
+}
+
+int ScreenSpaceFluidRenderer::getBlurFilterSize() const {
+	return this->blurFilterSize;
+}
