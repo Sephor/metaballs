@@ -38,5 +38,5 @@ void main()
 	color = vec4(0.5, 0.5, 0.5, 1.0);
 	color *= diffuse;
 	color += vec4(0.1, 0.1, 0.1, 1.0);
-	
+	//color = vec4(vec3(gl_FragDepth), 1.0);
 }

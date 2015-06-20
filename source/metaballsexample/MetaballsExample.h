@@ -144,6 +144,8 @@ public:
 	void setRaycasting(bool value);
 	bool getSSF() const;
 	void setSSF(bool value);
+	bool getBlur() const;
+	void setBlur(bool value);
 
 	const std::array<glm::vec4, 400> getMetaballs() const;
 
@@ -155,6 +157,7 @@ public:
 private:
 	bool m_other;
 	bool m_raycasting;
+	bool m_blur;
 	std::unique_ptr<RaycastingRenderer> m_rayRenderer;
 	std::unique_ptr<ScreenSpaceFluidRenderer> m_SSFRenderer;
 	FluidSimulator m_fluidSimulator;

@@ -32,6 +32,8 @@ public:
 private:
 	int blurFilterSize;
 
+	std::array<glm::vec4, 400> m_metaballs;
+
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
 	globjects::ref_ptr<globjects::Buffer> m_verticesPlan;
 	globjects::ref_ptr<globjects::VertexArray> m_vao;
@@ -44,4 +46,5 @@ private:
 	globjects::ref_ptr<globjects::Texture> m_colorTexture;
 	globjects::ref_ptr<globjects::Texture> m_depthTexture;
 	globjects::ref_ptr<globjects::Texture> m_testTexture;
+	globjects::ref_ptr<globjects::Texture> m_skybox;
 };

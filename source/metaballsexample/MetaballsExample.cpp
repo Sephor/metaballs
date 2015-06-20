@@ -107,8 +107,8 @@ void MetaballsExample::onInitialize()
 	m_SSFRenderer = std::make_unique<ScreenSpaceFluidRenderer>(m_viewportCapability, m_projectionCapability, m_cameraCapability);
 >>>>>>> initialize ScreenSpaceFluidRenderer
 
-	m_SSFRenderer->initialize(this);
 	m_rayRenderer->initialize(this);
+	m_SSFRenderer->initialize(this);
 }
 
 void MetaballsExample::onPaint()
@@ -210,6 +210,16 @@ void MetaballsExample::setSSF(bool value)
 	//m_other = !m_raycasting;
 }
 
+bool MetaballsExample::getBlur() const
+{
+	return m_blur;
+}
+
+void MetaballsExample::setBlur(bool value)
+{
+	m_blur = value;
+}
+
 void MetaballsExample::setupPropertyGroup()
 {
 	addProperty<bool>("Raycasting", this,
@@ -224,11 +234,16 @@ void MetaballsExample::setupPropertyGroup()
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> fixed merge issues & initialize SSFR
 =======
 	
 
 >>>>>>> add bluring and difuse shading
+=======
+	addProperty<bool>("Blurring", this,
+		&MetaballsExample::getBlur, &MetaballsExample::setBlur);
+>>>>>>> refactored SceenSpaceFluidRenderer
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const
