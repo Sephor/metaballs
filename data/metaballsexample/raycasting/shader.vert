@@ -12,6 +12,5 @@ uniform vec3 eye;
 void main()
 {
 	v_sky = (projectionInverted * vec4(in_vertex, 0.0, 1.0) * view).xyz;
-	//v_sky = center - eye;
     gl_Position = vec4(in_vertex, 1.0, 1.0);
 }
