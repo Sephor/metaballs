@@ -42,13 +42,11 @@ public:
 	void setRaycasting(bool value);
 	bool getSSF() const;
 	void setSSF(bool value);
-<<<<<<< HEAD
 	bool getBlur() const;
 	void setBlur(bool value);
-=======
+
 	bool getSimulationStatus() const;
 	void setSimulationStatus(bool value);
->>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 
 	const std::array<glm::vec4, 400> getMetaballs() const;
 

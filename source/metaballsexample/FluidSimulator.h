@@ -20,17 +20,14 @@ public:
 		glm::vec3 velocity;
 	};
 
-<<<<<<< HEAD
 	const std::array<glm::vec4, 400> getMetaballs() const;
-=======
+
 	struct Plane
 	{
 		glm::vec3 normal;
 		float distance;
 	};
 
-	const std::array<glm::vec4, 20> getMetaballs() const;
->>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 	void update();
 	void startSimulation();
 	void stopSimulation();

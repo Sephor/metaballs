@@ -3,7 +3,8 @@
 #include <iostream>
 #include <glm\geometric.hpp>
 
-FluidSimulator::FluidSimulator() : m_gravConstant(0.f, -.3f, 0.f), m_isRunning(false)
+FluidSimulator::FluidSimulator() 
+	: m_gravConstant(0.f, -.3f, 0.f), m_isRunning(false)
 {
 	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
 	m_groundPlane.distance = .0f;
@@ -12,20 +13,12 @@ FluidSimulator::FluidSimulator() : m_gravConstant(0.f, -.3f, 0.f), m_isRunning(f
 		for (int j = 0; j < 20; j++)
 	{
 		Metaball m;
-<<<<<<< HEAD
 		m.position = glm::vec3(i * 0.9f, j* 0.9f, .0f);
-=======
-		m.position = glm::vec3(i * 0.75f, 3.0f + i * 0.75f, .0f);
->>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 		m.radius = 1.f;
 		m.velocity = glm::vec3(.0f);
 		m_metaballs.push_back(m);
 	}
-<<<<<<< HEAD
-
 	m_lastTime = std::chrono::high_resolution_clock::now();
-=======
->>>>>>> collision mit ground plane, physic lässt sich an/ab stellen
 }
 
 FluidSimulator::~FluidSimulator()
