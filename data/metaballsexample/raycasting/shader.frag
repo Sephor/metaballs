@@ -7,12 +7,14 @@ out vec4 color;
 uniform samplerCube skybox;
 uniform vec4 metaballs[20];
 uniform vec3 eye;
+uniform mat4 projection;
+uniform mat4 view;
 
 const float INFINITY = 1e+4;
 const float EPSILON  = 1e-6;
 
 const int SIZE = 20;
-const float TRESHOLD = 0.66;
+const float TRESHOLD = 0.33;
 const vec3 light = normalize(vec3(1.0, 0.0, -1.0));
 const vec3 ambient = vec3(0.3725, 0.3686, 0.4314);
 
@@ -80,9 +82,9 @@ vec3 CookTorrance(in vec3 V, in vec3 N, in vec3 L/*, in Material m*/, in vec3 R,
 	float Rs = clamp(geom(NdotH, NdotV, VdotH, NdotL) * fresnel(VdotH, 0.44) * roughness(NdotH, 0.15), 0.0, 1.0); 
 	Rs /= clamp(NdotV * NdotL, EPSILON, 1.0);
 
-	float r2 = 0.15 * 0.15;
+	float r2 = 0.3 * 0.3;
 
-	vec3 c = mix(vec3(0.4, 0.4, 0.4) * Rs + vec3(0.6, 0.6, 0.6), R, r2);
+	vec3 c = mix(vec3(0.1, 0.1, 0.05) * Rs + vec3(0.05, 0.05, 0.05), R, r2);
 	
 	return mix(mix(ambient, R, r2) * c, c, NdotL);
 }
@@ -228,6 +230,8 @@ void main()
 	float t;
 	vec3 c;
 	
+	float depth = 1.0;
+	
 	float lum = 0.0;
 	
 	if(trace(ray[0], n[0]/*, m[0]*/, t))
@@ -238,6 +242,9 @@ void main()
 		ray[1].direction = reflect(ray[0].direction, n[0]);
 		v[0] = -ray[0].direction;
 		vec3 R;
+		
+		vec4 frpos = projection * view * vec4(ray[1].origin, 1.0);
+		depth = frpos.z / frpos.w;
 
 		if(trace(ray[1], n[1]/*, m[1]*/, t))
 		{
@@ -259,4 +266,5 @@ void main()
 	}	
 	lum = (c.r * 11.0 + c.g * 16.0 + c.b * 5.0) / 32.0;
 	color = vec4(c, smoothstep(0.92, 1.0, lum * 1.0));
+	gl_FragDepth = depth;
 }

@@ -42,7 +42,7 @@ void RaycastingRenderer::initialize(MetaballsExample * painter)
 
 	m_vertices = new globjects::Buffer;
 	m_vertices->setData(std::vector<float>{
-		-1.f, 1.f,
+			-1.f, 1.f,
 			-1.f, -1.f,
 			1.f, 1.f,
 			1.f, -1.f
@@ -97,15 +97,24 @@ globjects::Framebuffer * RaycastingRenderer::draw(
 	m_fbo->bind(),
 	m_vao->bind();
 
-	m_skybox->bindActive(gl::GL_TEXTURE0);
+	//TODO: warum funktioniert die Navigation nicht mehr wenn man den Depthbuffer cleart
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
 
+	m_skybox->bindActive(gl::GL_TEXTURE0);
 	m_program->use();
+
+	//Vertex Shader
+	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+
+	//Fragment Shader
 	m_program->setUniform("metaballs", painter->getMetaballs());
 	m_program->setUniform("eye", painter->cameraCapability()->eye());
-	m_program->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+	m_program->setUniform("projection", painter->projectionCapability()->projection());
+	int skyboxLocation = m_program->getUniformLocation("skybox");
+	m_program->setUniform(skyboxLocation, 0);
+
+	//both
 	m_program->setUniform("view", painter->cameraCapability()->view());
-	int test = m_program->getUniformLocation("skybox");
-	m_program->setUniform(test, 0);
 	
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
@@ -131,11 +140,9 @@ void RaycastingRenderer::setupFramebuffer(MetaballsExample * painter)
 	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	m_fbo->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
 
-	//set clearcolors and enable depthtest
+	//set clearcolor and cleardepth
 	m_fbo->bind();
 	gl::glClearColor(0.f, 0.f, 0.f, 1.f);
 	gl::glClearDepth(1.f);
-	gl::glEnable(gl::GL_DEPTH_TEST);
-	gl::glDepthFunc(gl::GL_LESS);
 	m_fbo->unbind();
 }
