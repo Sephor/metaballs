@@ -1,6 +1,7 @@
 #include "FluidSimulator.h"
 
 #include <iostream>
+#include <math.h>
 #include <glm\geometric.hpp>
 #include <glm\gtx\rotate_vector.hpp>
 
@@ -8,20 +9,22 @@ FluidSimulator::FluidSimulator()
 	: m_gravConstant(0.f, -1.f, 0.f)
 	, m_isRunning(false)
 	, m_metaballSelector(0)
-	, m_metaballCount(400)
 	, m_gen(m_rd())
 	, m_dis(0, 1)
 	, m_twoPi(6.283185f)
+	, m_repulsionLimitFactor(.7f)
+	, m_repulsionFactor(5.f)
+	, m_attractionFactor(1.f)
 {
 	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
 	m_groundPlane.distance = .0f;
 	m_groundPlane.friction = .5f;
 
-	m_metaballEmitter.period = .1f;
+	m_metaballEmitter.period = .01f;
 	m_metaballEmitter.position = glm::vec3(-1.f, 5.f, 0.f);
 	m_metaballEmitter.startVelocity = glm::vec3(1.f, 0.f, 0.f);
 	m_metaballEmitter.nextEmission = 0;
-	m_metaballEmitter.metaballRadius = .3f;
+	m_metaballEmitter.metaballRadius = .1f;
 	m_metaballEmitter.spread = .5f;
 	m_metaballEmitter.spray = .1f;
 
@@ -85,11 +88,27 @@ void FluidSimulator::applyRepulsion()
 	for (int i = 0; i < (m_metaballs.size() - 1); i++)
 		for (int j = i + 1; j < m_metaballs.size(); j++)
 		{
-			float repulsionLimit = (m_metaballs[j].radius + m_metaballs[i].radius) * .8f;
+			float radiusSum = m_metaballs[j].radius + m_metaballs[i].radius;
+			float repulsionLimit = radiusSum * m_repulsionLimitFactor;
 			glm::vec3 difference = m_metaballs[j].position - m_metaballs[i].position;
 			float distance = glm::length(difference);
-			if (distance > repulsionLimit) continue;
-			float forceMagnitude = (repulsionLimit - distance) * 5.f;
+
+			if (distance > radiusSum) continue;
+
+			float sqrtRadiusSum = sqrt(radiusSum);
+			float forceMagnitude;
+
+			if (distance > repulsionLimit)
+			{
+				float halfAttInterval = (radiusSum - radiusSum * m_repulsionLimitFactor) * .5f;
+				float term = (distance - radiusSum + halfAttInterval) / halfAttInterval * sqrtRadiusSum;
+				forceMagnitude = m_attractionFactor * (term * term - radiusSum);
+			}
+			else
+			{
+				float term = distance / (radiusSum * m_repulsionLimitFactor) * sqrtRadiusSum;
+				forceMagnitude = m_repulsionFactor * (radiusSum - term * term);
+			}
 			glm::vec3 force = forceMagnitude / distance * difference;
 			m_metaballs[i].acceleration -= force;
 			m_metaballs[j].acceleration += force;
@@ -118,7 +137,7 @@ void FluidSimulator::emitMetaball()
 	m_metaballs[m_metaballSelector].position = m_metaballEmitter.position + posOffset;
 	m_metaballs[m_metaballSelector].velocity = m_metaballEmitter.startVelocity + velOffset;
 	m_metaballs[m_metaballSelector].radius = m_metaballEmitter.metaballRadius;
-	m_metaballSelector = (m_metaballSelector + 1) % m_metaballCount;
+	m_metaballSelector = (m_metaballSelector + 1) % m_metaballs.size();
 }
 
 void FluidSimulator::update()

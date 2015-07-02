@@ -50,9 +50,11 @@ public:
 	void emitMetaball();
 
 private:
-	const int m_metaballCount; //currently has to be same as array length of getMetaballs()
 	const glm::vec3 m_gravConstant;
 	const float m_twoPi;
+	float m_repulsionLimitFactor;
+	float m_repulsionFactor;
+	float m_attractionFactor;
 	std::vector<Metaball> m_metaballs;
 	Plane m_groundPlane;
 	Emitter m_metaballEmitter;
