@@ -2,23 +2,40 @@
 
 #include <iostream>
 #include <glm\geometric.hpp>
+#include <glm\gtx\rotate_vector.hpp>
 
 FluidSimulator::FluidSimulator() 
-	: m_gravConstant(0.f, -.3f, 0.f)
+	: m_gravConstant(0.f, -1.f, 0.f)
 	, m_isRunning(false)
+	, m_metaballSelector(0)
+	, m_metaballCount(400)
+	, m_gen(m_rd())
+	, m_dis(0, 1)
+	, m_twoPi(6.283185f)
 {
 	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
 	m_groundPlane.distance = .0f;
+	m_groundPlane.friction = .5f;
+
+	m_metaballEmitter.period = .1f;
+	m_metaballEmitter.position = glm::vec3(-1.f, 5.f, 0.f);
+	m_metaballEmitter.startVelocity = glm::vec3(1.f, 0.f, 0.f);
+	m_metaballEmitter.nextEmission = 0;
+	m_metaballEmitter.metaballRadius = .3f;
+	m_metaballEmitter.spread = .5f;
+	m_metaballEmitter.spray = .1f;
+
 	m_metaballs = std::vector<Metaball>();
 	for (int i = 0; i < 20; i++)
 		for (int j = 0; j < 20; j++)
-	{
-		Metaball m;
-		m.position = glm::vec3(i * 0.9f, 0.f, j * 0.9f);
-		m.radius = 1.f;
-		m.velocity = glm::vec3(.0f);
-		m_metaballs.push_back(m);
-	}
+		{
+			Metaball m;
+			m.position = glm::vec3(i * 0.9f, 0.f, j * 0.9f);
+			m.radius = 0.f;
+			m.velocity = glm::vec3(.0f);
+			m.acceleration = glm::vec3(.0f);
+			m_metaballs.push_back(m);
+		}
 	m_lastTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -63,24 +80,79 @@ void FluidSimulator::setIsRunning(bool value)
 		startSimulation();
 }
 
+void FluidSimulator::applyRepulsion()
+{
+	for (int i = 0; i < (m_metaballs.size() - 1); i++)
+		for (int j = i + 1; j < m_metaballs.size(); j++)
+		{
+			float repulsionLimit = (m_metaballs[j].radius + m_metaballs[i].radius) * .8f;
+			glm::vec3 difference = m_metaballs[j].position - m_metaballs[i].position;
+			float distance = glm::length(difference);
+			if (distance > repulsionLimit) continue;
+			float forceMagnitude = (repulsionLimit - distance) * 5.f;
+			glm::vec3 force = forceMagnitude / distance * difference;
+			m_metaballs[i].acceleration -= force;
+			m_metaballs[j].acceleration += force;
+		}
+}
+
+void FluidSimulator::emitMetaball()
+{
+	glm::vec3 posOffset(m_dis(m_gen) * m_metaballEmitter.spread, .0f, .0f);
+	glm::vec3 velOffset(m_dis(m_gen) * m_metaballEmitter.spray, .0f, .0f);
+	glm::vec3 normal(0.f, 0.f, 1.f);
+
+	auto randomAngle = m_dis(m_gen) * 2.f * m_twoPi;
+	posOffset = glm::rotateY(posOffset, randomAngle);
+	normal = glm::rotateY(normal, randomAngle);
+	posOffset = glm::rotate(posOffset, m_dis(m_gen) * m_twoPi, normal);
+
+	normal = glm::vec3(0.f, 0.f, 1.f);
+
+	randomAngle = m_dis(m_gen) * 2.f * m_twoPi;
+	velOffset = glm::rotateY(velOffset, randomAngle);
+	normal = glm::rotateY(normal, randomAngle);
+	velOffset = glm::rotate(velOffset, m_dis(m_gen) * m_twoPi, normal);
+
+	m_metaballEmitter.nextEmission += m_metaballEmitter.period;
+	m_metaballs[m_metaballSelector].position = m_metaballEmitter.position + posOffset;
+	m_metaballs[m_metaballSelector].velocity = m_metaballEmitter.startVelocity + velOffset;
+	m_metaballs[m_metaballSelector].radius = m_metaballEmitter.metaballRadius;
+	m_metaballSelector = (m_metaballSelector + 1) % m_metaballCount;
+}
+
 void FluidSimulator::update()
 {
 	if (!m_isRunning) return;
+
 	float elapsedTime = std::chrono::duration<float, std::ratio<1, 1>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
 	m_lastTime = std::chrono::high_resolution_clock::now();
 
+	m_metaballEmitter.nextEmission -= elapsedTime;
+	while (m_metaballEmitter.nextEmission <= 0.f)
+	{
+		emitMetaball();
+	}
+
+	applyRepulsion();
+
 	for (auto & metaball : m_metaballs)
 	{
+		metaball.acceleration += m_gravConstant;
+		metaball.velocity += metaball.acceleration * elapsedTime;
 		if (doesCollide(metaball, m_groundPlane, elapsedTime))
 		{
-			metaball.position += metaball.velocity * collisionTime(metaball, m_groundPlane);
-			metaball.velocity = glm::vec3(.0f);
+			float t0 = collisionTime(metaball, m_groundPlane);
+			metaball.position += metaball.velocity * t0;
+			metaball.velocity = metaball.velocity - glm::dot(metaball.velocity, m_groundPlane.normal) * m_groundPlane.normal;
+			metaball.velocity -= metaball.velocity * m_groundPlane.friction * (elapsedTime - t0);
+			metaball.position += metaball.velocity * (elapsedTime - t0);
 		}
 		else
 		{
 			metaball.position += metaball.velocity * elapsedTime;
-			metaball.velocity += m_gravConstant * elapsedTime;
 		}
+		metaball.acceleration = glm::vec3(.0f);
 	}
 }
 

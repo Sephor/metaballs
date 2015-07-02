@@ -63,6 +63,9 @@ void MetaballsExample::onInitialize()
 
 	m_rayRenderer->initialize(this);
 	m_SSFRenderer->initialize(this);
+
+	m_cameraCapability->setEye(glm::vec3(0.f, 2.5f, -10.f));
+	m_cameraCapability->setCenter(glm::vec3(0.f, 2.5f, 0.f));
 }
 
 void MetaballsExample::onPaint()

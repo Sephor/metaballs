@@ -29,8 +29,8 @@ void main()
 	//calculate depth
 	vec4 fragmentPos = vec4( eyeSpacePos - normal.xyz*sphere_radius, 1.0);
 	vec4 clipSpacePos = projection * fragmentPos;
-	gl_FragDepth = (2 * near) / (far + near - (clipSpacePos.z / clipSpacePos.w) * (far - near));
-	//gl_FragDepth = clipSpacePos.z / clipSpacePos.w;
+	//gl_FragDepth = (2 * near) / (far + near - (clipSpacePos.z / clipSpacePos.w) * (far - near));
+	gl_FragDepth = clipSpacePos.z / clipSpacePos.w;
 	//depth = 1.0;
 	//gl_FragDepth = depth;
 	//liarize depth
