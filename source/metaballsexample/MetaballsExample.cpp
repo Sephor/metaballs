@@ -133,16 +133,6 @@ void MetaballsExample::setBlur(bool value)
 	m_blur = value;
 }
 
-bool MetaballsExample::getSimulationStatus() const
-{
-	return m_fluidSimulator.getIsRunning();
-}
-
-void MetaballsExample::setSimulationStatus(bool value)
-{
-	m_fluidSimulator.setIsRunning(value);
-}
-
 void MetaballsExample::setupPropertyGroup()
 {
 	addProperty<bool>("Raycasting", this,
@@ -154,11 +144,8 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("Blurring", this,
 		&MetaballsExample::getBlur, &MetaballsExample::setBlur);
 
-	addProperty<bool>("Simulate", this,
-		&MetaballsExample::getSimulationStatus, &MetaballsExample::setSimulationStatus);
-
-	addProperty<bool>("Simulate", this,
-		&MetaballsExample::getSimulationStatus, &MetaballsExample::setSimulationStatus);
+	addProperty<bool>("Simulate", &m_fluidSimulator,
+		&FluidSimulator::getIsRunning, &FluidSimulator::setIsRunning);
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const

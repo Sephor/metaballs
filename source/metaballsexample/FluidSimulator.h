@@ -46,6 +46,17 @@ public:
 	float collisionTime(const Metaball & metaball, const Plane & plane);
 	bool getIsRunning() const;
 	void setIsRunning(bool value);
+	float getAttractionFactor() const;
+	void setAttractionFactor(float value);
+	float getRepulsionFactor() const;
+	void setRepulsionFactor(float value);
+	float getMetaballRadius() const;
+	void setMetaballRadius(float value);
+	float getSpread() const;
+	void setSpread(float value);
+	float getSpray() const;
+	void setSpray(float value);
+
 	void applyRepulsion();
 	void emitMetaball();
 
