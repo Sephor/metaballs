@@ -146,6 +146,48 @@ void MetaballsExample::setupPropertyGroup()
 
 	addProperty<bool>("Simulate", &m_fluidSimulator,
 		&FluidSimulator::getIsRunning, &FluidSimulator::setIsRunning);
+
+	addProperty<float>("MetaballSize", &m_fluidSimulator,
+		&FluidSimulator::getMetaballRadius, &FluidSimulator::setMetaballRadius)->setOptions({
+			{ "minimum", 0.0f },
+			{ "maximum", 1.0f },
+			{ "step", 0.01f },
+			{ "precision", 2u } });
+
+	addProperty<float>("Attraction", &m_fluidSimulator,
+		&FluidSimulator::getAttractionFactor, &FluidSimulator::setAttractionFactor)->setOptions({
+			{ "minimum", 0.0f },
+			{ "maximum", 10.0f },
+			{ "step", 0.1f },
+			{ "precision", 1u } });
+
+	addProperty<float>("Repulsion", &m_fluidSimulator,
+		&FluidSimulator::getRepulsionFactor, &FluidSimulator::setRepulsionFactor)->setOptions({
+			{ "minimum", 0.0f },
+			{ "maximum", 10.0f },
+			{ "step", 0.1f },
+			{ "precision", 1u } });
+
+	addProperty<float>("SpawnTime", &m_fluidSimulator,
+		&FluidSimulator::getEmitterPeriod, &FluidSimulator::setEmitterPeriod)->setOptions({
+			{ "minimum", 0.01f },
+			{ "maximum", 1.0f },
+			{ "step", 0.01f },
+			{ "precision", 2u } });
+
+	addProperty<float>("Spread", &m_fluidSimulator,
+		&FluidSimulator::getSpread, &FluidSimulator::setSpread)->setOptions({
+			{ "minimum", 0.0f },
+			{ "maximum", 1.0f },
+			{ "step", 0.01f },
+			{ "precision", 2u } });
+
+	addProperty<float>("Spray", &m_fluidSimulator,
+		&FluidSimulator::getSpray, &FluidSimulator::setSpray)->setOptions({
+			{ "minimum", 0.0f },
+			{ "maximum", 2.0f },
+			{ "step", 0.01f },
+			{ "precision", 2u } });
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const

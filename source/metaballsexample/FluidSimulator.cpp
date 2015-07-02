@@ -83,6 +83,66 @@ void FluidSimulator::setIsRunning(bool value)
 		startSimulation();
 }
 
+float FluidSimulator::getAttractionFactor() const
+{
+	return m_attractionFactor;
+}
+
+void FluidSimulator::setAttractionFactor(float value)
+{
+	m_attractionFactor = value;
+}
+
+float FluidSimulator::getRepulsionFactor() const
+{
+	return m_repulsionFactor;
+}
+
+void FluidSimulator::setRepulsionFactor(float value)
+{
+	m_repulsionFactor = value;
+}
+
+float FluidSimulator::getSpread() const
+{
+	return m_metaballEmitter.spread;
+}
+
+void FluidSimulator::setSpread(float value)
+{
+	m_metaballEmitter.spread = value;
+}
+
+float FluidSimulator::getSpray() const
+{
+	return m_metaballEmitter.spray;
+}
+
+void FluidSimulator::setSpray(float value)
+{
+	m_metaballEmitter.spray = value;
+}
+
+float FluidSimulator::getMetaballRadius() const
+{
+	return m_metaballEmitter.metaballRadius;
+}
+
+void FluidSimulator::setMetaballRadius(float value)
+{
+	m_metaballEmitter.metaballRadius = value;
+}
+
+float FluidSimulator::getEmitterPeriod() const
+{
+	return m_metaballEmitter.period;
+}
+
+void FluidSimulator::setEmitterPeriod(float value)
+{
+	m_metaballEmitter.period = value;
+}
+
 void FluidSimulator::applyRepulsion()
 {
 	for (int i = 0; i < (m_metaballs.size() - 1); i++)

@@ -56,6 +56,8 @@ public:
 	void setSpread(float value);
 	float getSpray() const;
 	void setSpray(float value);
+	float getEmitterPeriod() const;
+	void setEmitterPeriod(float value);
 
 	void applyRepulsion();
 	void emitMetaball();
