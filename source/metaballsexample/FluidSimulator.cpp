@@ -4,7 +4,8 @@
 #include <glm\geometric.hpp>
 
 FluidSimulator::FluidSimulator() 
-	: m_gravConstant(0.f, -.3f, 0.f), m_isRunning(false)
+	: m_gravConstant(0.f, -.3f, 0.f)
+	, m_isRunning(false)
 {
 	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
 	m_groundPlane.distance = .0f;
@@ -13,7 +14,7 @@ FluidSimulator::FluidSimulator()
 		for (int j = 0; j < 20; j++)
 	{
 		Metaball m;
-		m.position = glm::vec3(i * 0.9f, j* 0.9f, .0f);
+		m.position = glm::vec3(i * 0.9f, 0.f, j * 0.9f);
 		m.radius = 1.f;
 		m.velocity = glm::vec3(.0f);
 		m_metaballs.push_back(m);

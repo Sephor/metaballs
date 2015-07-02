@@ -30,7 +30,9 @@ public:
 	int getBlurFilterSize() const;
 
 private:
-	int blurFilterSize;
+	int m_blurFilterSize;
+	const float m_sphereRadius;
+	const glm::vec4 m_lightDir;
 
 	std::array<glm::vec4, 400> m_metaballs;
 
@@ -41,10 +43,27 @@ private:
 	globjects::ref_ptr<globjects::Program> m_program;
 	globjects::ref_ptr<globjects::Program> m_programSmoothing;
 	globjects::ref_ptr<globjects::Program> m_programFinal;
-	globjects::ref_ptr<globjects::Framebuffer> m_fbo;	
+	globjects::ref_ptr<globjects::Framebuffer> m_fbo1;
+	globjects::ref_ptr<globjects::Framebuffer> m_fbo2;
+	globjects::ref_ptr<globjects::Framebuffer> m_fbo3;
 
-	globjects::ref_ptr<globjects::Texture> m_colorTexture;
-	globjects::ref_ptr<globjects::Texture> m_depthTexture;
-	globjects::ref_ptr<globjects::Texture> m_testTexture;
+	globjects::ref_ptr<globjects::Texture> m_colorTexture1;
+	globjects::ref_ptr<globjects::Texture> m_depthTexture1;
+
+	globjects::ref_ptr<globjects::Texture> m_colorTexture2;
+	globjects::ref_ptr<globjects::Texture> m_depthTexture2;
+
+	globjects::ref_ptr<globjects::Texture> m_colorTexture3;
+	globjects::ref_ptr<globjects::Texture> m_depthTexture3;
 	globjects::ref_ptr<globjects::Texture> m_skybox;
+
+	void setupFramebuffers(MetaballsExample * painter);
+	void setupPrograms(MetaballsExample * painter);
+	void setupCubemap();
+	void setupMetaballs(MetaballsExample * painter);
+	void setupScreenAlignedQuad(MetaballsExample * painter);
+
+	void drawFirstPass(MetaballsExample * painter);
+	void drawSecondPass(MetaballsExample * painter);
+	void drawThirdPass(MetaballsExample * painter);
 };

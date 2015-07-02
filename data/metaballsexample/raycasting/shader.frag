@@ -1,8 +1,9 @@
 #version 150 core
+#extension GL_ARB_explicit_attrib_location : require
 
 in vec3 v_sky;
 
-out vec4 color;
+layout (location = 0) out vec4 color;
 
 uniform samplerCube skybox;
 uniform vec4 metaballs[20];
