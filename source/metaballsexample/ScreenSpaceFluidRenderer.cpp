@@ -58,8 +58,11 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 
 		m_colorTexture3->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 		m_depthTexture3->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+
+		m_colorTexture4->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 	}
 
+	drawThicknessPass(painter);
 	drawFirstPass(painter);
 	drawSecondPass(painter);
 	drawThirdPass(painter);
@@ -82,6 +85,7 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 	m_fbo1 = new globjects::Framebuffer;
 	m_fbo2 = new globjects::Framebuffer;
 	m_fbo3 = new globjects::Framebuffer;
+	m_fbo4 = new globjects::Framebuffer;
 
 	//first
 	m_colorTexture1 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
@@ -124,10 +128,26 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 	gl::glClearDepth(1.0);
 	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
 	m_fbo3->unbind();
+
+	//thickness
+	m_colorTexture4 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_colorTexture4->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+	m_fbo4->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture4, 0);
+
+	m_fbo4->bind();
+	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
+	m_fbo4->unbind();
 }
 
 void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
 {
+	m_programThickness = new globjects::Program;
+	m_programThickness->attach(
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/thicknessPass.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/thicknessPass.frag"),
+		globjects::Shader::fromFile(gl::GL_GEOMETRY_SHADER, "data/metaballsexample/screen_space_fluid/thicknessPass.geom")
+	);
+
 	m_program = new globjects::Program;
 	m_program->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/firstPass.vert"),
@@ -211,6 +231,32 @@ void ScreenSpaceFluidRenderer::setupScreenAlignedQuad(MetaballsExample * painter
 	binding->setFormat(2, gl::GL_FLOAT);
 
 	m_vaoPlan->enable(0);
+}
+
+void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
+{
+	m_metaballs = painter->getMetaballs();
+	m_vertices->setSubData(m_metaballs);
+	m_vao->bind();
+
+	m_fbo4->bind();
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+	gl::glDisable(gl::GL_DEPTH_TEST);
+	gl::glEnable(gl::GL_BLEND);
+	gl::glBlendFunc(gl::GL_ONE, gl::GL_ONE);
+
+	m_programThickness->use();
+	m_programThickness->setUniform("view", painter->cameraCapability()->view());
+	m_programThickness->setUniform("projection", painter->projectionCapability()->projection());
+	m_programThickness->setUniform("sphere_radius", m_sphereRadius);
+	m_programThickness->setUniform("near", painter->projectionCapability()->zNear());
+	m_programThickness->setUniform("far", painter->projectionCapability()->zFar());
+
+	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
+
+	m_vao->unbind();
+	m_programThickness->release();
+	m_fbo4->unbind();
 }
 
 void ScreenSpaceFluidRenderer::drawFirstPass(MetaballsExample * painter)

@@ -43,9 +43,11 @@ private:
 	globjects::ref_ptr<globjects::Program> m_program;
 	globjects::ref_ptr<globjects::Program> m_programSmoothing;
 	globjects::ref_ptr<globjects::Program> m_programFinal;
+	globjects::ref_ptr<globjects::Program> m_programThickness;
 	globjects::ref_ptr<globjects::Framebuffer> m_fbo1;
 	globjects::ref_ptr<globjects::Framebuffer> m_fbo2;
 	globjects::ref_ptr<globjects::Framebuffer> m_fbo3;
+	globjects::ref_ptr<globjects::Framebuffer> m_fbo4;
 
 	globjects::ref_ptr<globjects::Texture> m_colorTexture1;
 	globjects::ref_ptr<globjects::Texture> m_depthTexture1;
@@ -55,6 +57,9 @@ private:
 
 	globjects::ref_ptr<globjects::Texture> m_colorTexture3;
 	globjects::ref_ptr<globjects::Texture> m_depthTexture3;
+
+	globjects::ref_ptr<globjects::Texture> m_colorTexture4;
+
 	globjects::ref_ptr<globjects::Texture> m_skybox;
 
 	void setupFramebuffers(MetaballsExample * painter);
@@ -66,4 +71,5 @@ private:
 	void drawFirstPass(MetaballsExample * painter);
 	void drawSecondPass(MetaballsExample * painter);
 	void drawThirdPass(MetaballsExample * painter);
+	void drawThicknessPass(MetaballsExample * painter);
 };
