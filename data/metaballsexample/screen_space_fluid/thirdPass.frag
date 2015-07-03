@@ -1,7 +1,7 @@
 #version 150 
 #extension GL_ARB_explicit_attrib_location : require
 
-uniform sampler2D colorTexture;
+//uniform sampler2D colorTexture;
 uniform sampler2D depthTexture;
 uniform samplerCube skybox;
 
@@ -10,6 +10,8 @@ uniform mat4 view;
 uniform mat4 viewInverted;
 uniform mat4 projectionInverted;
 uniform vec2 viewport;
+uniform float near;
+uniform float far;
 
 in vec2 textCoord;
 in vec3 v_sky;
@@ -51,6 +53,11 @@ vec3 eyespaceNormal(vec2 pos) {
 	return normalize(cross(pdx, pdy));
 }
 
+float lin(float depth)
+{
+	return (2 * near) / (far + near - depth * (far - near));
+}
+
 void main()
 {
 	gl_FragDepth = texture(depthTexture, textCoord).x;
@@ -66,6 +73,8 @@ void main()
 		vec3 r = reflect(v_sky, n);
 		//r.y *= -1.0;
 		color = texture(skybox, r);
+		color = vec4(vec3(gl_FragDepth), 1.0);
+		//color = vec4(n, 1.0);
 	}
 	else
 	{

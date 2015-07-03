@@ -23,9 +23,6 @@
 #include <globjects/Texture.h>
 #include <globjects/AttachedTexture.h>
 
-#include "ScreenSpaceFluidRenderer.h"
-#include "RaycastingRenderer.h"
-
 MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 :   Painter(resourceManager)
 ,   m_targetFramebufferCapability(addCapability(new gloperate::TargetFramebufferCapability()))
@@ -34,10 +31,8 @@ MetaballsExample::MetaballsExample(gloperate::ResourceManager & resourceManager)
 ,   m_cameraCapability(addCapability(new gloperate::CameraCapability()))
 ,	m_raycasting(false)
 ,	m_other(false)
-,	m_SSF(true)
 {
 	setupPropertyGroup();
-	//m_projectionCapability->setZFar(200.f);
 }
 
 MetaballsExample::~MetaballsExample() = default;
@@ -58,11 +53,8 @@ void MetaballsExample::onInitialize()
     globjects::debug() << "Using global OS X shader replacement '#version 140' -> '#version 150'" << std::endl;
 #endif
 
-	m_SSFRenderer = std::make_unique<ScreenSpaceFluidRenderer>();
-	m_rayRenderer = std::make_unique<RaycastingRenderer>();
-
-	m_rayRenderer->initialize(this);
-	m_SSFRenderer->initialize(this);
+	m_rayRenderer.initialize(this);
+	m_SSFRenderer.initialize(this);
 
 	m_cameraCapability->setEye(glm::vec3(0.f, 2.5f, -10.f));
 	m_cameraCapability->setCenter(glm::vec3(0.f, 2.5f, 0.f));
@@ -82,7 +74,7 @@ void MetaballsExample::onPaint()
 
 	if (m_raycasting)
 	{
-		tmp_fbo = m_rayRenderer->draw(this);
+		tmp_fbo = m_rayRenderer.draw(this);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		tmp_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT, gl::GL_NEAREST);
@@ -92,7 +84,7 @@ void MetaballsExample::onPaint()
 	{	
 		rect[0] += m_raycasting * static_cast<unsigned>(m_viewportCapability->width() / 2);
 		
-		tmp_fbo = m_SSFRenderer->draw(this);
+		tmp_fbo = m_SSFRenderer.draw(this);
 
 		targetFBO->bind(gl::GL_DRAW_FRAMEBUFFER);
 		tmp_fbo->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT, gl::GL_NEAREST);
@@ -146,6 +138,13 @@ void MetaballsExample::setupPropertyGroup()
 
 	addProperty<bool>("Simulate", &m_fluidSimulator,
 		&FluidSimulator::getIsRunning, &FluidSimulator::setIsRunning);
+
+	addProperty<unsigned int>("Iterations", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getBlurringIterations, &ScreenSpaceFluidRenderer::setBlurringIterations)->setOptions({
+			{ "minimum", 1 },
+			{ "maximum", 500 },
+			{ "step", 10 },
+			{ "precision", 2u } });
 
 	addProperty<float>("MetaballSize", &m_fluidSimulator,
 		&FluidSimulator::getMetaballRadius, &FluidSimulator::setMetaballRadius)->setOptions({

@@ -29,8 +29,12 @@ public:
 	void setBlurFilterSize(int);
 	int getBlurFilterSize() const;
 
+	void setBlurringIterations(unsigned int value);
+	unsigned int getBlurringIterations() const;
+
 private:
 	int m_blurFilterSize;
+	unsigned int m_blurringIterations;
 	const float m_sphereRadius;
 	const glm::vec4 m_lightDir;
 
@@ -44,21 +48,21 @@ private:
 	globjects::ref_ptr<globjects::Program> m_programSmoothing;
 	globjects::ref_ptr<globjects::Program> m_programFinal;
 	globjects::ref_ptr<globjects::Program> m_programThickness;
-	globjects::ref_ptr<globjects::Framebuffer> m_fbo1;
-	globjects::ref_ptr<globjects::Framebuffer> m_fbo2;
-	globjects::ref_ptr<globjects::Framebuffer> m_fbo3;
-	globjects::ref_ptr<globjects::Framebuffer> m_fbo4;
+	globjects::ref_ptr<globjects::Framebuffer> m_metaballFBO;
+	std::array<globjects::ref_ptr<globjects::Framebuffer>, 2> m_blurringFBO;
+	globjects::ref_ptr<globjects::Framebuffer> m_finalFBO;
+	globjects::ref_ptr<globjects::Framebuffer> m_thicknessFBO;
 
-	globjects::ref_ptr<globjects::Texture> m_colorTexture1;
-	globjects::ref_ptr<globjects::Texture> m_depthTexture1;
+	//globjects::ref_ptr<globjects::Texture> m_colorTexture1;
+	globjects::ref_ptr<globjects::Texture> m_metaballTexture;
 
-	globjects::ref_ptr<globjects::Texture> m_colorTexture2;
-	globjects::ref_ptr<globjects::Texture> m_depthTexture2;
+	//globjects::ref_ptr<globjects::Texture> m_colorTexture2;
+	std::array<globjects::ref_ptr<globjects::Texture>, 2> m_blurringTexture;
 
-	globjects::ref_ptr<globjects::Texture> m_colorTexture3;
-	globjects::ref_ptr<globjects::Texture> m_depthTexture3;
+	globjects::ref_ptr<globjects::Texture> m_colorTexture;
+	globjects::ref_ptr<globjects::Texture> m_depthTexture;
 
-	globjects::ref_ptr<globjects::Texture> m_colorTexture4;
+	globjects::ref_ptr<globjects::Texture> m_thicknessTexture;
 
 	globjects::ref_ptr<globjects::Texture> m_skybox;
 

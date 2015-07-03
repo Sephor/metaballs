@@ -26,10 +26,11 @@
 
 ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
 	: m_blurFilterSize{ 0 }
+	, m_blurringIterations(10)
 	, m_sphereRadius(1.f)
 	, m_lightDir(-1.f, -1.f, -1.f, 1.f)
 {
-	
+		
 }
 
 ScreenSpaceFluidRenderer::~ScreenSpaceFluidRenderer()
@@ -50,16 +51,17 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 {
 	if (painter->viewportCapability()->hasChanged())
 	{
-		m_colorTexture1->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-		m_depthTexture1->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+		//m_colorTexture1->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+		m_metaballTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 
-		m_colorTexture2->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-		m_depthTexture2->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+		//m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+		m_blurringTexture[0]->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+		m_blurringTexture[1]->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 
-		m_colorTexture3->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-		m_depthTexture3->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+		m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+		m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 
-		m_colorTexture4->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+		m_thicknessTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 	}
 
 	drawThicknessPass(painter);
@@ -67,7 +69,7 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	drawSecondPass(painter);
 	drawThirdPass(painter);
 
-	return m_fbo3;
+	return m_finalFBO;
 }
 
 void ScreenSpaceFluidRenderer::setBlurFilterSize(int size)
@@ -80,63 +82,83 @@ int ScreenSpaceFluidRenderer::getBlurFilterSize() const
 	return m_blurFilterSize;
 }
 
+void ScreenSpaceFluidRenderer::setBlurringIterations(unsigned int value)
+{
+	m_blurringIterations = value;
+}
+
+unsigned int ScreenSpaceFluidRenderer::getBlurringIterations() const
+{
+	return m_blurringIterations;
+}
+
 void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 {
-	m_fbo1 = new globjects::Framebuffer;
-	m_fbo2 = new globjects::Framebuffer;
-	m_fbo3 = new globjects::Framebuffer;
-	m_fbo4 = new globjects::Framebuffer;
+	m_metaballFBO = new globjects::Framebuffer;
+	m_blurringFBO[0] = new globjects::Framebuffer;
+	m_blurringFBO[1] = new globjects::Framebuffer;
+	m_finalFBO = new globjects::Framebuffer;
+	m_thicknessFBO = new globjects::Framebuffer;
 
 	//first
-	m_colorTexture1 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_colorTexture1->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-	m_fbo1->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture1, 0);
+	//m_colorTexture1 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	//m_colorTexture1->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+	//m_metaballFBO->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture1, 0);
 
-	m_depthTexture1 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_depthTexture1->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
-	m_fbo1->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture1, 0);
+	m_metaballTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_metaballTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+	m_metaballFBO->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_metaballTexture, 0);
 
-	m_fbo1->bind();
+	m_metaballFBO->bind();
 	gl::glClearDepth(1.0);
 	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
-	m_fbo1->unbind();
+	m_metaballFBO->unbind();
 
 	//second
-	m_colorTexture2 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_colorTexture2->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-	m_fbo2->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture2, 0);
+	//m_colorTexture2 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	//m_colorTexture2->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+	//m_blurringFBO->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture2, 0);
 
-	m_depthTexture2 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_depthTexture2->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
-	m_fbo2->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture2, 0);
+	m_blurringTexture[0] = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_blurringTexture[0]->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+	m_blurringFBO[0]->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_blurringTexture[0], 0);
 
-	m_fbo2->bind();
+	m_blurringTexture[1] = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_blurringTexture[1]->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+	m_blurringFBO[1]->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_blurringTexture[1], 0);
+
+	m_blurringFBO[0]->bind();
 	gl::glClearDepth(1.0);
 	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
-	m_fbo2->unbind();
+	m_blurringFBO[0]->unbind();
+
+	m_blurringFBO[1]->bind();
+	gl::glClearDepth(1.0);
+	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
+	m_blurringFBO[1]->unbind();
 
 	//third
-	m_colorTexture3 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_colorTexture3->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-	m_fbo3->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture3, 0);
+	m_colorTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+	m_finalFBO->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture, 0);
 
-	m_depthTexture3 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_depthTexture3->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
-	m_fbo3->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture3, 0);
+	m_depthTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
+	m_finalFBO->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
 
-	m_fbo3->bind();
+	m_finalFBO->bind();
 	gl::glClearDepth(1.0);
 	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
-	m_fbo3->unbind();
+	m_finalFBO->unbind();
 
 	//thickness
-	m_colorTexture4 = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
-	m_colorTexture4->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-	m_fbo4->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture4, 0);
+	m_thicknessTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_thicknessTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+	m_thicknessFBO->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_thicknessTexture, 0);
 
-	m_fbo4->bind();
+	m_thicknessFBO->bind();
 	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
-	m_fbo4->unbind();
+	m_thicknessFBO->unbind();
 }
 
 void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
@@ -239,7 +261,7 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 	m_vertices->setSubData(m_metaballs);
 	m_vao->bind();
 
-	m_fbo4->bind();
+	m_thicknessFBO->bind();
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 	gl::glDisable(gl::GL_DEPTH_TEST);
 	gl::glEnable(gl::GL_BLEND);
@@ -256,7 +278,7 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 
 	m_vao->unbind();
 	m_programThickness->release();
-	m_fbo4->unbind();
+	m_thicknessFBO->unbind();
 }
 
 void ScreenSpaceFluidRenderer::drawFirstPass(MetaballsExample * painter)
@@ -265,8 +287,8 @@ void ScreenSpaceFluidRenderer::drawFirstPass(MetaballsExample * painter)
 	m_vertices->setSubData(m_metaballs);
 	m_vao->bind();
 
-	m_fbo1->bind();
-	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+	m_metaballFBO->bind();
+	gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LESS);
 
@@ -283,12 +305,23 @@ void ScreenSpaceFluidRenderer::drawFirstPass(MetaballsExample * painter)
 	m_vao->unbind();
 	m_program->release();
 	gl::glDisable(gl::GL_DEPTH_TEST);
-	m_fbo1->unbind();
+	m_metaballFBO->unbind();
 }
 
 void ScreenSpaceFluidRenderer::drawSecondPass(MetaballsExample * painter)
 {
-	m_fbo2->bind();
+	glm::vec2 fov(0.f);
+	fov.y = painter->projectionCapability()->fovy();
+	fov.x = fov.y * painter->projectionCapability()->aspectRatio();
+	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
+	glm::vec2 focal(0.f);
+	focal.x = sinf(fov.x / 2.f) / tanf(fov.x / 2.f);
+	focal.y = sinf(fov.y / 2.f) / tanf(fov.y / 2.f);
+	glm::vec2 focal2(-painter->projectionCapability()->projection()[0][0], -painter->projectionCapability()->projection()[1][1]);
+
+
+
+	m_blurringFBO[0]->bind();
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LEQUAL);
@@ -296,14 +329,14 @@ void ScreenSpaceFluidRenderer::drawSecondPass(MetaballsExample * painter)
 	m_programSmoothing->use();
 	m_vaoPlan->bind();
 
-	m_colorTexture1->bindActive(gl::GL_TEXTURE0);
-	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("colorTexture"), 0);
+	//m_colorTexture1->bindActive(gl::GL_TEXTURE0);
+	//m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("colorTexture"), 0);
 
-	m_depthTexture1->bindActive(gl::GL_TEXTURE1);
-	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("depthTexture"), 1);
+	m_metaballTexture->bindActive(gl::GL_TEXTURE0);
+	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("depthTexture"), 0);
 
 	m_skybox->bindActive(gl::GL_TEXTURE2);
-	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("skybox"), 2);
+	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("skybox"), 1);
 
 	m_programSmoothing->setUniform("maxDepth", 1.0f);
 	m_programSmoothing->setUniform("light_dir", m_lightDir);
@@ -312,32 +345,46 @@ void ScreenSpaceFluidRenderer::drawSecondPass(MetaballsExample * painter)
 	m_programSmoothing->setUniform("blur", painter->getBlur());
 	m_programSmoothing->setUniform("view", painter->cameraCapability()->view());
 	m_programSmoothing->setUniform("projection", painter->projectionCapability()->projection());
-	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
 	m_programSmoothing->setUniform("viewport", viewport);
-	glm::vec2 fov(0.f);
-	fov.y = painter->projectionCapability()->fovy();
-	fov.x = fov.y * painter->projectionCapability()->aspectRatio();
 	m_programSmoothing->setUniform("fov", fov);
-	glm::vec2 focal(0.f);
-	focal.x = sinf(fov.x / 2.f) / tanf(fov.x / 2.f);
-	focal.y = sinf(fov.y / 2.f) / tanf(fov.y / 2.f);
-	glm::vec2 focal2(-painter->projectionCapability()->projection()[0][0], -painter->projectionCapability()->projection()[1][1]);
 	m_programSmoothing->setUniform("focal", focal);
 	m_programSmoothing->setUniform("focal2", focal2);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-	m_depthTexture1->unbind();
-	m_colorTexture1->unbind();
+	m_blurringFBO[0]->unbind();
+	m_metaballTexture->unbind();
+
+	unsigned int current = 1;
+	unsigned int notCurrent = 0;
+
+	for (unsigned int i = 0; i < m_blurringIterations - 1; ++i)
+	{
+		m_blurringFBO[current]->bind();
+		gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
+		gl::glEnable(gl::GL_DEPTH_TEST);
+		gl::glDepthFunc(gl::GL_LEQUAL);
+
+		m_blurringTexture[notCurrent]->bindActive(gl::GL_TEXTURE0);
+		m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("depthTexture"), 0);
+
+		gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+
+		m_blurringTexture[notCurrent]->unbind();
+		notCurrent = current;
+		current = current == 0 ? 1 : 0;
+	}
+
+	//m_colorTexture1->unbind();
+	m_skybox->unbind();
 	m_programSmoothing->release();
 	gl::glDisable(gl::GL_DEPTH_TEST);
 	m_vaoPlan->unbind();
-	m_fbo2->unbind();
 }
 
 void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 {
-	m_fbo3->bind();
+	m_finalFBO->bind();
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LEQUAL);
@@ -345,10 +392,10 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 	m_programFinal->use();
 	m_vaoPlan->bind();
 
-	m_colorTexture2->bindActive(gl::GL_TEXTURE0);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("colorTexture"), 0);
+	//m_colorTexture2->bindActive(gl::GL_TEXTURE0);
+	//m_programFinal->setUniform(m_programFinal->getUniformLocation("colorTexture"), 0);
 
-	m_depthTexture2->bindActive(gl::GL_TEXTURE1);
+	m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE1);
 	m_programFinal->setUniform(m_programFinal->getUniformLocation("depthTexture"), 1);
 
 	m_skybox->bindActive(gl::GL_TEXTURE2);
@@ -358,16 +405,18 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 	m_programFinal->setUniform("projection", painter->projectionCapability()->projection());
 	m_programFinal->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_programFinal->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
+	m_programFinal->setUniform("near", painter->projectionCapability()->zNear());
+	m_programFinal->setUniform("far", painter->projectionCapability()->zFar());
 
 	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
 	m_programFinal->setUniform("viewport", viewport);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-	m_depthTexture2->unbind();
-	m_colorTexture2->unbind();
+	m_blurringTexture[!(m_blurringIterations % 2)]->unbind();
+	//m_colorTexture2->unbind();
 	m_programFinal->release();
 	gl::glDisable(gl::GL_DEPTH_TEST);
 	m_vaoPlan->unbind();
-	m_fbo3->unbind();
+	m_finalFBO->unbind();
 }

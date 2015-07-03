@@ -11,6 +11,8 @@
 #include <gloperate/painter/Painter.h>
 
 #include "FluidSimulator.h"
+#include "RaycastingRenderer.h"
+#include "ScreenSpaceFluidRenderer.h"
 
 namespace globjects
 {
@@ -24,9 +26,6 @@ namespace gloperate
     class AbstractPerspectiveProjectionCapability;
     class AbstractCameraCapability;
 }
-
-class RaycastingRenderer;
-class ScreenSpaceFluidRenderer;
 
 class MetaballsExample : public gloperate::Painter
 {
@@ -56,8 +55,8 @@ private:
 	bool m_other;
 	bool m_raycasting;
 	bool m_blur;
-	std::unique_ptr<RaycastingRenderer> m_rayRenderer;
-	std::unique_ptr<ScreenSpaceFluidRenderer> m_SSFRenderer;
+	RaycastingRenderer m_rayRenderer;
+	ScreenSpaceFluidRenderer m_SSFRenderer;
 	FluidSimulator m_fluidSimulator;
 	bool m_SSF;
 

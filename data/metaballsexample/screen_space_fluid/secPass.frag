@@ -1,7 +1,7 @@
 #version 150 
 #extension GL_ARB_explicit_attrib_location : require
 
-uniform sampler2D colorTexture;
+//uniform sampler2D colorTexture;
 uniform sampler2D depthTexture;
 uniform samplerCube skybox;
 uniform mat4 view;
@@ -21,7 +21,7 @@ uniform vec2 viewport;
 in vec2 textCoord;
 in vec3 v_sky;
 
-layout(location = 0) out vec4 color;
+//layout(location = 0) out vec4 color;
 
 vec4 naiveFilter(sampler2D text, vec2 uv, int size){
 	vec2 texels = textureSize(text, 0);
@@ -58,32 +58,6 @@ vec3 uvToEye(vec2 texCoord, float depth){
 vec3 getEyePos( sampler2D depthTexture, vec2 textCoord){
 	float depth = naiveFilter(depthTexture, textCoord, 8).x;
 	return uvToEye(textCoord, depth);
-}
-
-vec3 normalByCurvature(float xTexelsize, float yTexelsize)
-{
-	//float depth2 = texture(depthTexture, textCoord).x;
-	//float dZ = texture(depthTexture, textCoord + vec2(xTexelsize, 0.0)).x - depth;
-	//dZ += texture(depthTexture, textCoord + vec2(0.0, yTexelsize)).x - depth;
-	//dZ /= 2.0;
-	float depth = texture(depthTexture, textCoord).x;
-	float dZ = dFdx(depth) + dFdy(depth);
-	dZ /= 2.0;
-
-	float focal_x = focal2.x; //TODO
-	float focal_y = focal2.y; //TODO
-	
-	float viewport_x = viewport.x; //TODO
-	float viewport_y = viewport.y; //TODO
-	
-	float c_x = 2.0 / (focal_x * viewport_x);
-	float c_y = 2.0 / (focal_y * viewport_y);
-	
-	float D = c_y * c_y * dZ * dZ + c_x * c_x * dZ * dZ + c_x * c_x * c_y * c_y * depth * depth;
-	
-	vec3 n = vec3(-c_y * dZ, -c_x * dZ, c_x * c_y * depth);
-	
-	return n / sqrt(D);
 }
 
 vec3 meanCurvature(vec2 pos) {
@@ -175,51 +149,17 @@ void main()
 	float texelSizeX = 1 / texels.x;
 	float texelSizeY = 1 / texels.y;
 	
-	/*float depth = texture(depthTexture, textCoord).x;
-	if(depth == 1.0)
-		discard;
-	
-	if(blur)
-		depth = naiveFilter(depthTexture, textCoord, 8).x;
-
-	vec3 posEye = uvToEye(textCoord, depth);
-	vec3 n;
-
-	if(blur)
-		n = cross(dFdx(posEye), dFdy(posEye));
-	else
-		n = normalByCurvature(texelSizeX, texelSizeY);
-	
-	vec2 f = focal;
-	vec2 f2 = fov;
-	vec2 v = viewport;
-	
-	n = normalize(n);
-	
-	color = vec4(n, 1.0);
-	color = vec4(vec3(depth), 1.0); */
-	/*vec3 light= vec3(1.0, 0.0, 0.0);
-	float diffuse = max(0.0, dot(n ,  light));
-	color = vec4(0.1, 0.1, 0.5, 1.0) + vec4(vec3(0.4) * diffuse, 0.0); */
-	
 	float tempDepth = 0.0;
 	tempDepth = texture(depthTexture, textCoord).x;
 	if(tempDepth == 1.0)
 		gl_FragDepth = 1.0;
 	else
 	{
-		//const float dt = 0.00055;
 		const float dt = 0.00055;
 		const float dzt = 1000.0;
 		vec3 dxyz = meanCurvature(textCoord);
 		
 		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 + (abs(dxyz.x) + abs(dxyz.y)) * dzt);
+		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 + dxyz.x * dxyz.x + dxyz.y * dxyz.y);
 	}
-	
-	color = vec4(vec3(gl_FragDepth), 1.0);
-	vec3 n = normalByCurvature(texelSizeX, texelSizeY);
-	n = normalize(n);
-	vec3 wn = (viewInverted * vec4(n, 1.0)).xyz;
-	wn = normalize(wn);
-	color = vec4(n, 1.0);
 }
