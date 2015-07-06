@@ -38,7 +38,7 @@ public:
 		float spray;
 	};
 
-	const std::array<glm::vec4, 400> getMetaballs() const;
+	const std::vector<glm::vec4>& getMetaballs();
 	void update();
 	void startSimulation();
 	void stopSimulation();
@@ -69,6 +69,8 @@ private:
 	float m_repulsionFactor;
 	float m_attractionFactor;
 	std::vector<Metaball> m_metaballs;
+	std::vector<glm::vec4> m_metaballsAsVec;
+	bool m_metaballsChanged;
 	Plane m_groundPlane;
 	Emitter m_metaballEmitter;
 	bool m_isRunning;

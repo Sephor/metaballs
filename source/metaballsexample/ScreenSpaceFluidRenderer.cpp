@@ -321,6 +321,9 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 
 void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 {
+	//TODO 
+	setupMetaballs(painter);
+
 	m_metaballs = painter->getMetaballs();
 	m_vertices->setSubData(m_metaballs);
 	m_vao->bind();

@@ -45,7 +45,7 @@ private:
 	std::vector<float> m_binomCoeff;
 	std::vector<int> m_binomOffset;
 
-	std::array<glm::vec4, 400> m_metaballs;
+	std::vector<glm::vec4> m_metaballs;
 
 	globjects::ref_ptr<globjects::Buffer> m_vertices;
 	globjects::ref_ptr<globjects::Buffer> m_verticesPlan;

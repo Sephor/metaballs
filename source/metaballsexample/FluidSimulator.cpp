@@ -29,16 +29,16 @@ FluidSimulator::FluidSimulator()
 	m_metaballEmitter.spray = .1f;
 
 	m_metaballs = std::vector<Metaball>();
-	for (int i = 0; i < 20; i++)
-		for (int j = 0; j < 20; j++)
-		{
-			Metaball m;
-			m.position = glm::vec3(i * 0.9f, 0.f, j * 0.9f);
-			m.radius = 0.f;
-			m.velocity = glm::vec3(.0f);
-			m.acceleration = glm::vec3(.0f);
-			m_metaballs.push_back(m);
-		}
+	m_metaballs.resize(800);
+	for (int i = 0; i < m_metaballs.size(); i++)
+	{
+		Metaball m;
+		m.position = glm::vec3(i * 0.9f, 0.f, 500.f);
+		m.radius = 0.f;
+		m.velocity = glm::vec3(.0f);
+		m.acceleration = glm::vec3(.0f);
+		m_metaballs[i] = m;
+	}
 	m_lastTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -47,16 +47,18 @@ FluidSimulator::~FluidSimulator()
 	
 }
 
-const std::array<glm::vec4, 400> FluidSimulator::getMetaballs() const
+const std::vector<glm::vec4>& FluidSimulator::getMetaballs()
 {
-	std::array<glm::vec4, 400> temp;
-
-	for (int i = 0; i < m_metaballs.size(); i++)
+	if (m_metaballsChanged)
 	{
-		temp[i] = glm::vec4(m_metaballs[i].position, m_metaballs[i].radius);
+		if (m_metaballs.size() != m_metaballsAsVec.size())
+			m_metaballsAsVec.resize(m_metaballs.size());
+		for (int i = 0; i < m_metaballs.size(); i++)
+		{
+			m_metaballsAsVec[i] = glm::vec4(m_metaballs[i].position, m_metaballs[i].radius);
+		}
 	}
-
-	return temp;
+	return m_metaballsAsVec;
 }
 
 void FluidSimulator::startSimulation()
@@ -203,6 +205,7 @@ void FluidSimulator::emitMetaball()
 void FluidSimulator::update()
 {
 	if (!m_isRunning) return;
+	m_metaballsChanged = true;
 
 	float elapsedTime = std::chrono::duration<float, std::ratio<1, 1>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
 	m_lastTime = std::chrono::high_resolution_clock::now();
