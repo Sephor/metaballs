@@ -27,6 +27,7 @@
 ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
 	: m_blurFilterSize{ 0 }
 	, m_blurringIterations(10)
+	, m_bilateral(false)
 	, m_sphereRadius(1.f)
 	, m_lightDir(-1.f, -1.f, -1.f, 1.f)
 {
@@ -45,6 +46,18 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 	setupScreenAlignedQuad(painter);
 	setupPrograms(painter);
 	setupCubemap();
+
+	for (int nHalf = 0; nHalf < 30; ++nHalf){
+		m_binomOffset.push_back(static_cast<int>(m_binomCoeff.size()));
+		for (int k = nHalf; k >= 0; --k){
+			double num = 1.0;
+			for (int i = 0; i < 2 * nHalf - k; i++)
+				num = 0.5*num*(2 * nHalf - i) / (i + 1);
+			for (int i = 0; i < k; i++)
+				num /= 2;
+			m_binomCoeff.push_back(float(num));
+		}
+	}
 }
 
 globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
@@ -65,8 +78,11 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	}
 
 	drawThicknessPass(painter);
-	drawFirstPass(painter);
-	drawSecondPass(painter);
+	drawMetaballs(painter);
+	if (!m_bilateral)
+		curvatureFlowBlur(painter);
+	else
+		bilateralBlur(painter);
 	drawThirdPass(painter);
 
 	return m_finalFBO;
@@ -90,6 +106,16 @@ void ScreenSpaceFluidRenderer::setBlurringIterations(unsigned int value)
 unsigned int ScreenSpaceFluidRenderer::getBlurringIterations() const
 {
 	return m_blurringIterations;
+}
+
+void ScreenSpaceFluidRenderer::setBilateral(bool value)
+{
+	m_bilateral = value;
+}
+
+bool ScreenSpaceFluidRenderer::getBilateral() const
+{
+	return m_bilateral;
 }
 
 void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
@@ -182,6 +208,18 @@ void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/secPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/secPass.frag")
 	);
+
+	m_programSmoothing2 = new globjects::Program;
+	m_programSmoothing2->attach(
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/secPass.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/secPass2.frag")
+		);
+
+	m_programSmoothing3 = new globjects::Program;
+	m_programSmoothing3->attach(
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/secPass.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/secPass3.frag")
+		);
 
 	m_programFinal = new globjects::Program;
 	m_programFinal->attach(
@@ -281,7 +319,7 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 	m_thicknessFBO->unbind();
 }
 
-void ScreenSpaceFluidRenderer::drawFirstPass(MetaballsExample * painter)
+void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 {
 	m_metaballs = painter->getMetaballs();
 	m_vertices->setSubData(m_metaballs);
@@ -308,7 +346,7 @@ void ScreenSpaceFluidRenderer::drawFirstPass(MetaballsExample * painter)
 	m_metaballFBO->unbind();
 }
 
-void ScreenSpaceFluidRenderer::drawSecondPass(MetaballsExample * painter)
+void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 {
 	glm::vec2 fov(0.f);
 	fov.y = painter->projectionCapability()->fovy();
@@ -360,6 +398,7 @@ void ScreenSpaceFluidRenderer::drawSecondPass(MetaballsExample * painter)
 
 	for (unsigned int i = 0; i < m_blurringIterations - 1; ++i)
 	{
+		gl::glFinish();
 		m_blurringFBO[current]->bind();
 		gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
 		gl::glEnable(gl::GL_DEPTH_TEST);
@@ -382,6 +421,55 @@ void ScreenSpaceFluidRenderer::drawSecondPass(MetaballsExample * painter)
 	m_vaoPlan->unbind();
 }
 
+void ScreenSpaceFluidRenderer::bilateralBlur(MetaballsExample * painter)
+{
+	m_blurringFBO[0]->bind();
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+	gl::glEnable(gl::GL_DEPTH_TEST);
+	gl::glDepthFunc(gl::GL_LEQUAL);
+
+	m_programSmoothing2->use();
+	m_vaoPlan->bind();
+
+	m_metaballTexture->bindActive(gl::GL_TEXTURE0);
+	m_programSmoothing2->setUniform(m_programSmoothing2->getUniformLocation("depthTexture"), 0);
+	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
+	m_programSmoothing2->setUniform("viewport", viewport);
+	m_programSmoothing2->setUniform("binomCoeff", m_binomCoeff);
+	m_programSmoothing2->setUniform("binomOffset", m_binomOffset);
+
+	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+
+	gl::glDisable(gl::GL_DEPTH_TEST);
+
+	m_programSmoothing2->release();
+	m_blurringFBO[0]->unbind();
+	m_metaballTexture->unbind();
+
+	m_blurringFBO[1]->bind();
+
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+	gl::glEnable(gl::GL_DEPTH_TEST);
+	gl::glDepthFunc(gl::GL_LEQUAL);
+
+	m_programSmoothing2->use();
+
+	m_blurringTexture[0]->bindActive(gl::GL_TEXTURE0);
+	m_programSmoothing3->setUniform(m_programSmoothing3->getUniformLocation("depthTexture"), 0);
+	m_programSmoothing3->setUniform("viewport", viewport);
+	m_programSmoothing3->setUniform("binomCoeff", m_binomCoeff);
+	m_programSmoothing3->setUniform("binomOffset", m_binomOffset);
+
+	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+
+	gl::glDisable(gl::GL_DEPTH_TEST);
+
+	m_programSmoothing3->release();
+	m_blurringFBO[0]->unbind();
+	m_blurringTexture[0]->unbind();
+	m_vaoPlan->unbind();
+}
+
 void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 {
 	m_finalFBO->bind();
@@ -395,7 +483,10 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 	//m_colorTexture2->bindActive(gl::GL_TEXTURE0);
 	//m_programFinal->setUniform(m_programFinal->getUniformLocation("colorTexture"), 0);
 
-	m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE1);
+	if (!m_bilateral)
+		m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE1);
+	else
+		m_blurringTexture[1]->bindActive(gl::GL_TEXTURE1);
 	m_programFinal->setUniform(m_programFinal->getUniformLocation("depthTexture"), 1);
 
 	m_skybox->bindActive(gl::GL_TEXTURE2);
@@ -413,7 +504,10 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-	m_blurringTexture[!(m_blurringIterations % 2)]->unbind();
+	if (!m_bilateral)
+		m_blurringTexture[!(m_blurringIterations % 2)]->unbind();
+	else
+		m_blurringTexture[1]->unbind();
 	//m_colorTexture2->unbind();
 	m_programFinal->release();
 	gl::glDisable(gl::GL_DEPTH_TEST);

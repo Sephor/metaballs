@@ -32,11 +32,18 @@ public:
 	void setBlurringIterations(unsigned int value);
 	unsigned int getBlurringIterations() const;
 
+	void setBilateral(bool value);
+	bool getBilateral() const;
+
 private:
+	bool m_bilateral;
 	int m_blurFilterSize;
 	unsigned int m_blurringIterations;
 	const float m_sphereRadius;
 	const glm::vec4 m_lightDir;
+
+	std::vector<float> m_binomCoeff;
+	std::vector<int> m_binomOffset;
 
 	std::array<glm::vec4, 400> m_metaballs;
 
@@ -46,6 +53,8 @@ private:
 	globjects::ref_ptr<globjects::VertexArray> m_vaoPlan;
 	globjects::ref_ptr<globjects::Program> m_program;
 	globjects::ref_ptr<globjects::Program> m_programSmoothing;
+	globjects::ref_ptr<globjects::Program> m_programSmoothing2;
+	globjects::ref_ptr<globjects::Program> m_programSmoothing3;
 	globjects::ref_ptr<globjects::Program> m_programFinal;
 	globjects::ref_ptr<globjects::Program> m_programThickness;
 	globjects::ref_ptr<globjects::Framebuffer> m_metaballFBO;
@@ -72,8 +81,9 @@ private:
 	void setupMetaballs(MetaballsExample * painter);
 	void setupScreenAlignedQuad(MetaballsExample * painter);
 
-	void drawFirstPass(MetaballsExample * painter);
-	void drawSecondPass(MetaballsExample * painter);
+	void drawMetaballs(MetaballsExample * painter);
+	void curvatureFlowBlur(MetaballsExample * painter);
+	void bilateralBlur(MetaballsExample * painter);
 	void drawThirdPass(MetaballsExample * painter);
 	void drawThicknessPass(MetaballsExample * painter);
 };

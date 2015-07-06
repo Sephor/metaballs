@@ -133,8 +133,8 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 
-	addProperty<bool>("Blurring", this,
-		&MetaballsExample::getBlur, &MetaballsExample::setBlur);
+	addProperty<bool>("Bilateral", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getBilateral, &ScreenSpaceFluidRenderer::setBilateral);
 
 	addProperty<bool>("Simulate", &m_fluidSimulator,
 		&FluidSimulator::getIsRunning, &FluidSimulator::setIsRunning);

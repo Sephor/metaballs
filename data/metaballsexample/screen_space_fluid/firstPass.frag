@@ -1,5 +1,4 @@
-#version 150 core
-#extension GL_ARB_explicit_attrib_location : require
+#version 330 core
 
 uniform float sphere_radius;
 uniform mat4 projection;

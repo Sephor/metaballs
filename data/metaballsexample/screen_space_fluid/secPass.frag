@@ -1,5 +1,4 @@
-#version 150 
-#extension GL_ARB_explicit_attrib_location : require
+#version 330
 
 //uniform sampler2D colorTexture;
 uniform sampler2D depthTexture;
@@ -115,32 +114,6 @@ vec3 meanCurvature(vec2 pos) {
 	return(vec3(zdx, zdy, h));
 }
 
-float bilateral(vec2 pos)
-{
-	const float epsilon = 0.01;
-	const float posCoef = 1.0 / 16.0;
-	float depth = texture(depthTexture, pos).x;
-	vec2 texelSize = 1.0 / viewport;
-	float sum = 0.0;
-	float depthSum = 0.0;
-	
-	for(float x = -2; x <= 2; x++)
-	{
-		for(float y = -2; y <= 2; y++)
-		{
-			vec2 offset = vec2(x, y) * texelSize;
-			vec2 nextPosition = pos + offset;
-			float nextDepth = texture(depthTexture, nextPosition).x;
-			
-			float depthCoef = 1.0 / (epsilon * abs(depth - nextDepth));
-			sum += depthCoef * posCoef;
-			depthSum = depthCoef * nextDepth;
-		}
-	}
-	
-	return depthSum / sum;
-}
-
 void main()
 {
 	vec2 texSize = textureSize(depthTexture, 0);
@@ -155,7 +128,7 @@ void main()
 		gl_FragDepth = 1.0;
 	else
 	{
-		const float dt = 0.00055;
+		const float dt = 0.000055;
 		const float dzt = 1000.0;
 		vec3 dxyz = meanCurvature(textCoord);
 		

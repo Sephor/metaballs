@@ -1,10 +1,9 @@
-#version 150 core
-#extension GL_ARB_explicit_attrib_location : require
+#version 330 core
 
 in vec2 textcoord;
 in float metaballRadius;
 
-layout(location = 0) out vec4 color;
+out vec4 color;
 
 void main()
 {
