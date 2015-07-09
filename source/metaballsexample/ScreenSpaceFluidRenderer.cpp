@@ -402,7 +402,6 @@ void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 
 	for (unsigned int i = 0; i < m_blurringIterations - 1; ++i)
 	{
-		gl::glFinish();
 		m_blurringFBO[current]->bind();
 		gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
 		gl::glEnable(gl::GL_DEPTH_TEST);

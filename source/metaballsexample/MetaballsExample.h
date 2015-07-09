@@ -44,7 +44,7 @@ public:
 	bool getBlur() const;
 	void setBlur(bool value);
 
-	const std::array<glm::vec4, 400> getMetaballs() const;
+	const std::vector<glm::vec4> getMetaballs();
 
 	const gloperate::AbstractTargetFramebufferCapability * targetFramebufferCapability() const;
 	const gloperate::AbstractViewportCapability * viewportCapability() const;
