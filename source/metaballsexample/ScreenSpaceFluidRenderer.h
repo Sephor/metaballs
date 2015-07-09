@@ -62,10 +62,10 @@ private:
 	globjects::ref_ptr<globjects::Framebuffer> m_finalFBO;
 	globjects::ref_ptr<globjects::Framebuffer> m_thicknessFBO;
 
-	//globjects::ref_ptr<globjects::Texture> m_colorTexture1;
+	globjects::ref_ptr<globjects::Texture> m_metaballDummy;
 	globjects::ref_ptr<globjects::Texture> m_metaballTexture;
 
-	//globjects::ref_ptr<globjects::Texture> m_colorTexture2;
+	std::array<globjects::ref_ptr<globjects::Texture>, 2> m_blurringDummy;
 	std::array<globjects::ref_ptr<globjects::Texture>, 2> m_blurringTexture;
 
 	globjects::ref_ptr<globjects::Texture> m_colorTexture;
