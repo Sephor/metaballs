@@ -487,10 +487,13 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 	//m_programFinal->setUniform(m_programFinal->getUniformLocation("colorTexture"), 0);
 
 	if (!m_bilateral)
-		m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE1);
+		m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE0);
 	else
-		m_blurringTexture[1]->bindActive(gl::GL_TEXTURE1);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("depthTexture"), 1);
+		m_blurringTexture[1]->bindActive(gl::GL_TEXTURE0);
+	m_programFinal->setUniform(m_programFinal->getUniformLocation("depthTexture"), 0);
+
+	m_thicknessTexture->bindActive(gl::GL_TEXTURE1);
+	m_programFinal->setUniform(m_programFinal->getUniformLocation("thicknessTexture"), 1);
 
 	m_skybox->bindActive(gl::GL_TEXTURE2);
 	m_programFinal->setUniform(m_programFinal->getUniformLocation("skybox"), 2);

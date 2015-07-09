@@ -2,6 +2,7 @@
 
 //uniform sampler2D colorTexture;
 uniform sampler2D depthTexture;
+uniform sampler2D thicknessTexture;
 uniform samplerCube skybox;
 
 uniform mat4 projection;
@@ -14,12 +15,28 @@ uniform float far;
 
 in vec2 textCoord;
 in vec3 v_sky;
+in vec3 viewVector;
 
 out vec4 color;
+
+const vec3 waterColorf = vec3(64 / 255, 164/ 255, 223 / 255);
 
 float lin(float depth)
 {
 	return (2 * near) / (far + near - depth * (far - near));
+}
+
+float fresnel(vec3 V, vec3 N)
+{
+	const float r0 = pow((1.0 - 1.333) / (1.0 + 1.333), 2.0);
+	return r0 + (1.0 - r0) * pow((1.0 - max(dot(V, N), 0.0)), 5.0);
+}
+
+vec3 calcEye(vec2 pos)
+{
+	float z = texture(depthTexture, pos).x;
+	pos = pos * 2.0 - vec2(1.0);
+	return normalize((projectionInverted * vec4(pos, -z, 1.0)).xyz);
 }
 
 //UNUSED START
@@ -128,22 +145,38 @@ void main()
 {
 	gl_FragDepth = texture(depthTexture, textCoord).x;
 	vec3 n = eyespaceNormal(textCoord);
+	n = normal(textCoord);
 	vec3 light = vec3(1.0, 0.0, 0.0);
 	float diffuse = max(0.0, dot(n ,  light));
 	color = vec4(0.1, 0.1, 0.5, 1.0) + vec4(vec3(0.4) * diffuse, 0.0);
 	if(gl_FragDepth != 1.0)
 	{
-		vec3 light= vec3(1.0, 0.0, 0.0);
-		float diffuse = max(0.0, dot(n ,  light));
-		color = vec4(0.1, 0.1, 0.5, 1.0) + vec4(vec3(0.4) * diffuse, 0.0);
-		vec3 r = reflect(v_sky, n);
-		//r.y *= -1.0;
-		color = texture(skybox, r);
-		//color = vec4(vec3(gl_FragDepth), 1.0);
-		//color = vec4(elemateNormal(textCoord), 1.0);
-		//color = vec4(normal(textCoord) * 0.5 +0.5, 1.0);
-		//color = vec4(n * 0.5 + 0.5, 1.0);
-        //color = vec4(lin(gl_FragDepth));
+		vec3 worldSpaceNormal = normalize((viewInverted * vec4(n, 1.0)).xyz);
+		float fresnelTerm = fresnel(normalize(viewVector), n);
+		//fresnelTerm = fresnel(-calcEye(textCoord), n);
+		float lambertTerm = max(0.0, dot(normalize(light - viewVector), n));
+		
+		/* reflect */
+		vec3 r = reflect(normalize(v_sky), worldSpaceNormal);
+		r *= -1.0;
+		vec4 reflectColor = texture(skybox, r);
+		
+		/* refract */
+		vec3 refr = refract(normalize(v_sky), worldSpaceNormal, 1.0/1.333);
+		refr.y *= -1.0;
+		vec4 refractColor = texture(skybox, refr);
+		
+		/* thickness */
+		float thickness = texture(thicknessTexture, textCoord).x;
+		
+		//refractColor = mix(vec4(min(exp(vec3(1.0) - inverseWaterColor * vec3(thickness)), darkestWaterColor), 1.0), refractColor, exp(-thickness));
+		//refractColor = vec4(exp(waterColor * vec3(thickness)) * 0.01, 1.0);
+		refractColor = mix(vec4(waterColorf + vec3(0.2, 0.2, 0.4), 1.0), texture(skybox, refr), exp(-thickness));
+		float strange = dot(worldSpaceNormal, 0.5 * (v_sky + normalize(light)));
+		color = refractColor * (1.0 - fresnelTerm) +  reflectColor * fresnelTerm + min(0.4, lambertTerm);
+		//color = vec4(viewVector, 1.0);
+		//color = vec4(calcEye(textCoord), 1.0);
+		//color = vec4(vec3(lambertTerm), 1.0);
 	}
 	else
 	{
