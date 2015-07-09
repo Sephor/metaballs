@@ -321,9 +321,6 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 
 void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 {
-	//TODO 
-	setupMetaballs(painter);
-
 	m_metaballs = painter->getMetaballs();
 	m_vertices->setSubData(m_metaballs);
 	m_vao->bind();
@@ -401,7 +398,6 @@ void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 
 	for (unsigned int i = 0; i < m_blurringIterations - 1; ++i)
 	{
-		gl::glFinish();
 		m_blurringFBO[current]->bind();
 		gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
 		gl::glEnable(gl::GL_DEPTH_TEST);
