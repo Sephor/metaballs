@@ -99,7 +99,7 @@ vec3 meanCurvature(vec2 pos) {
 
 	// Normalization term
 	float d = cy * cy * zdx * zdx + cx * cx * zdy * zdy + cx * cx * cy * cy * zc * zc;
-	
+
 	// Derivatives of said term
 	float ddx = cy * cy * 2.0 * zdx * zdx2 + cx * cx * 2.0 * zdy * zdxy + cx * cx * cy * cy * 2.0 * zc * zdx;
 	float ddy = cy * cy * 2.0 * zdx * zdxy + cx * cx * 2.0 * zdy * zdy2 + cx * cx * cy * cy * 2.0 * zc * zdy;
@@ -110,18 +110,18 @@ vec3 meanCurvature(vec2 pos) {
 
 	// Finally, mean curvature
 	float h = 0.5 * ((cy * ex + cx * ey) / pow(d, 1.5));
-	
+
 	return(vec3(zdx, zdy, h));
 }
 
 void main()
 {
 	vec2 texSize = textureSize(depthTexture, 0);
-	
+
 	vec2 texels = textureSize(depthTexture, 0);
 	float texelSizeX = 1 / texels.x;
 	float texelSizeY = 1 / texels.y;
-	
+
 	float tempDepth = 0.0;
 	tempDepth = texture(depthTexture, textCoord).x;
 	if(tempDepth == 1.0)
@@ -131,7 +131,7 @@ void main()
 		const float dt = 0.000055;
 		const float dzt = 1000.0;
 		vec3 dxyz = meanCurvature(textCoord);
-		
+
 		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 + (abs(dxyz.x) + abs(dxyz.y)) * dzt);
 		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 + dxyz.x * dxyz.x + dxyz.y * dxyz.y);
 	}

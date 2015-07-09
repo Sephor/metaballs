@@ -1,4 +1,4 @@
-#version 330 
+#version 330
 
 //uniform sampler2D colorTexture;
 uniform sampler2D depthTexture;
@@ -17,6 +17,12 @@ in vec3 v_sky;
 
 out vec4 color;
 
+float lin(float depth)
+{
+	return (2 * near) / (far + near - depth * (far - near));
+}
+
+//UNUSED START
 vec3 eyespaceNormal(vec2 pos) {
 	// Width of one pixel
 	vec2 dx = vec2(1.0 / viewport.x, 0.0);
@@ -50,6 +56,39 @@ vec3 eyespaceNormal(vec2 pos) {
 	vec3 pdy = normalize(vec3(wx * zdy, cy * zc + wy * zdy, zdy));
 
 	return normalize(cross(pdx, pdy));
+}
+//UNUSED END
+
+vec2 revert(vec2 pos)
+{
+    return pos * 2.0 - 1.0;
+}
+
+vec3 normal(vec2 pos)
+{
+    vec2 dx = vec2(1.0 / viewport.x, 0.0);
+    vec2 dy = vec2(0.0, 1.0 / viewport.y);
+
+    float z = texture(depthTexture, pos).x;
+    float dxp = texture(depthTexture, pos + dx).x;
+    float dxn = texture(depthTexture, pos - dx).x;
+    float dyp = texture(depthTexture, pos + dy).x;
+    float dyn = texture(depthTexture, pos - dy).x;
+
+    vec4 vzFull = projectionInverted * vec4(revert(pos),z*2-1 ,1.0);
+    vec3 vz = vzFull.xyz / vzFull.w;
+    vec4 vxpFull = projectionInverted * vec4(revert(pos + dx), dxp*2-1, 1.0);
+	vec3 vxp = vxpFull.xyz / vxpFull.w;
+    vec4 vxnFull = projectionInverted * vec4(revert(pos - dx), dxn*2-1, 1.0);
+	vec3 vxn = vxnFull.xyz / vxnFull.w;
+    vec4 vypFull = projectionInverted * vec4(revert(pos + dy), dyp*2-1, 1.0);
+	vec3 vyp = vypFull.xyz / vypFull.w;
+    vec4 vynFull = projectionInverted * vec4(revert(pos - dy), dyn*2-1, 1.0);
+	vec3 vyn = vynFull.xyz / vynFull.w;
+
+	//TODO: Wenn differenz zu groß vxn/vyn benutzen
+    return normalize(cross(vxp - vz, vyp - vz));
+    //return normalize(cross(dFdy(vz), dFdx(vz)));
 }
 
 vec3 elemateNormal(vec2 pos)
@@ -85,11 +124,6 @@ vec3 elemateNormal(vec2 pos)
     return normalize(cross(va, vb));
 }
 
-float lin(float depth)
-{
-	return (2 * near) / (far + near - depth * (far - near));
-}
-
 void main()
 {
 	gl_FragDepth = texture(depthTexture, textCoord).x;
@@ -106,14 +140,14 @@ void main()
 		//r.y *= -1.0;
 		color = texture(skybox, r);
 		//color = vec4(vec3(gl_FragDepth), 1.0);
-		//color = vec4(n, 1.0);
 		//color = vec4(elemateNormal(textCoord), 1.0);
-		//color = vec4(n, 1.0);
+		//color = vec4(normal(textCoord) * 0.5 +0.5, 1.0);
+		//color = vec4(n * 0.5 + 0.5, 1.0);
+        //color = vec4(lin(gl_FragDepth));
 	}
 	else
 	{
 		color = texture(skybox, vec3(v_sky.x, -v_sky.y, v_sky.z));
 	}
-	
-	//color = vec4(vec3(gl_FragDepth), 1.0);
+	//color = vec4(vec3(gl_FragDepth), 0.0);
 }
