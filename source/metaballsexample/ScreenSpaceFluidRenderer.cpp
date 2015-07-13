@@ -64,7 +64,8 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 {
 	m_frame++;
-	float elapsed = 1 / 60;
+	float elapsedTime = std::chrono::duration<float, std::ratio<1, 1>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
+	m_lastTime = std::chrono::high_resolution_clock::now();
 
 	if (painter->viewportCapability()->hasChanged())
 	{
@@ -81,7 +82,7 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 
 		m_thicknessTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);	
 	}
-	computePhysics(painter, elapsed);
+	computePhysics(painter, elapsedTime);
 	drawThicknessPass(painter);
 	drawMetaballs(painter);
 	if (!m_bilateral)
@@ -603,6 +604,9 @@ void ScreenSpaceFluidRenderer::computePhysics(MetaballsExample * painter, float 
 	//change Viewport
 	gl::glViewport(0, 0, SQRTMETABALLS, SQRTMETABALLS);
 
+	if (elapsed > 0.05)
+		elapsed = 0.05;
+
 	//update velocity ------------------------------------------------------------------
 	unsigned short int activeBuffer = m_frame % 2;
 	m_physicsFBO[activeBuffer]->bind();
@@ -617,6 +621,7 @@ void ScreenSpaceFluidRenderer::computePhysics(MetaballsExample * painter, float 
 	m_programPhysics[0]->setUniform(m_programPhysics[0]->getUniformLocation("velocityTexture"), 0);
 	m_programPhysics[0]->setUniform(m_programPhysics[0]->getUniformLocation("positionTexture"), 1);
 	m_programPhysics[0]->setUniform(m_programPhysics[0]->getUniformLocation("particleInfoTexture"), 2);
+	m_programPhysics[0]->setUniform("elapsedTime", elapsed);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
@@ -644,6 +649,7 @@ void ScreenSpaceFluidRenderer::computePhysics(MetaballsExample * painter, float 
 	m_programPhysics[1]->setUniform(m_programPhysics[1]->getUniformLocation("velocityTexture"), 0);
 	m_programPhysics[1]->setUniform(m_programPhysics[1]->getUniformLocation("positionTexture"), 1);
 	m_programPhysics[1]->setUniform(m_programPhysics[1]->getUniformLocation("particleInfoTexture"), 2);
+	m_programPhysics[1]->setUniform("elapsedTime", elapsed);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 

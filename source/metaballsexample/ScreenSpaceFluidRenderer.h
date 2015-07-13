@@ -4,6 +4,7 @@
 
 #include <array>
 #include <vector>
+#include <chrono>
 
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
@@ -70,6 +71,8 @@ private:
 
 	//Physics ------------------------------------------------------------------
 	
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> m_lastTime;
+
 	std::array<globjects::ref_ptr<globjects::Program>, 2> m_programPhysics;
 
 	std::array<globjects::ref_ptr<globjects::Framebuffer>, 2> m_physicsFBO;
