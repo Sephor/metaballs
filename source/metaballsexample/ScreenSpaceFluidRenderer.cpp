@@ -209,9 +209,9 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 	float *rawVelocity = new float[SQRTMETABALLS * SQRTMETABALLS * 4];
 	for (int x = 0; x < SQRTMETABALLS; x++)
 		for (int y = 0; y < SQRTMETABALLS; y++){
-			rawVelocity[x * 4 + y * SQRTMETABALLS * 4] = 0.f;
-			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 1] = .0f;
-			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 2] = 0.f;
+			rawVelocity[x * 4 + y * SQRTMETABALLS * 4] = 0.01f;
+			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 1] = .01f;
+			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 2] = .01f;
 			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 3] = 0.f;
 		}
 
@@ -632,6 +632,9 @@ void ScreenSpaceFluidRenderer::computePhysics(MetaballsExample * painter, float 
 	//Position velocity ------------------------------------------------------------------
 	m_physicsFBO[activeBuffer]->bind();
 	m_vaoPlan->bind();
+	
+	gl::glDisable(gl::GL_BLEND);
+	
 
 	m_programPhysics[1]->use();
 	m_velocityTexture[!activeBuffer]->bindActive(gl::GL_TEXTURE0);
