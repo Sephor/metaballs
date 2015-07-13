@@ -1,12 +1,14 @@
 #version 330 core
 
-uniform mat4 view;
+in ivec2 in_uv;
 
-in vec4 in_vertex;
+uniform sampler2D positionTexture;
+uniform mat4 view;
 
 out float radius;
 
 void main() {
-    gl_Position = view * vec4(in_vertex.xyz, 1.0);
-	radius = in_vertex.w;
+	vec4 posData = texelFetch(positionTexture, in_uv, 0);
+    gl_Position = view * vec4(posData.xyz, 1.0);
+	radius = posData.w;
 }

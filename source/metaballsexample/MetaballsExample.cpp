@@ -65,11 +65,14 @@ void MetaballsExample::onPaint()
 	m_fluidSimulator.update();
 
 	gl::glViewport(0, 0, m_viewportCapability->width(), m_viewportCapability->height());
-	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+	//gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT); Lead to clear the last initialized framebuffer.... in our case the physicsFBO[1] and with it all attached textures
 
 	std::array<int, 4> rect = { { 0, 0, m_viewportCapability->width(), m_viewportCapability->height() } };
 
 	globjects::Framebuffer * targetFBO = m_targetFramebufferCapability->framebuffer() ? m_targetFramebufferCapability->framebuffer() : globjects::Framebuffer::defaultFBO();
+	targetFBO->bind();
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT); //On this position it clears the Target FBO
+	targetFBO->unbind();
 	globjects::Framebuffer * tmp_fbo = nullptr;
 
 	if (m_raycasting)

@@ -59,6 +59,7 @@ public:
 	float getEmitterPeriod() const;
 	void setEmitterPeriod(float value);
 
+	float collisionFactor(Metaball& ball1, Metaball& ball2);
 	void applyRepulsion();
 	void emitMetaball();
 

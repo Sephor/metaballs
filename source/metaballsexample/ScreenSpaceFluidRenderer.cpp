@@ -25,7 +25,8 @@
 #include "MetaballsExample.h"
 
 ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
-	: m_blurFilterSize{ 0 }
+	: m_frame(0)
+	, m_blurFilterSize{ 0 }
 	, m_blurringIterations(10)
 	, m_bilateral(false)
 	, m_sphereRadius(1.f)
@@ -36,7 +37,7 @@ ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
 
 ScreenSpaceFluidRenderer::~ScreenSpaceFluidRenderer()
 {
-
+	
 }
 
 void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
@@ -62,6 +63,9 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 
 globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painter)
 {
+	m_frame++;
+	float elapsed = 1 / 60;
+
 	if (painter->viewportCapability()->hasChanged())
 	{
 		m_metaballTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
@@ -75,9 +79,9 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 		m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 		m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 
-		m_thicknessTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
+		m_thicknessTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);	
 	}
-
+	computePhysics(painter, elapsed);
 	drawThicknessPass(painter);
 	drawMetaballs(painter);
 	if (!m_bilateral)
@@ -85,7 +89,7 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	else
 		bilateralBlur(painter);
 	drawThirdPass(painter);
-
+	
 	return m_finalFBO;
 }
 
@@ -189,6 +193,51 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 	m_thicknessFBO->bind();
 	gl::glClearColor(0.0, 0.0, 0.0, 1.0);
 	m_thicknessFBO->unbind();
+
+	//Physics ------------------------------------------------------------------	
+	
+		//inti data
+	float *rawPositions = new float[SQRTMETABALLS * SQRTMETABALLS * 4];
+	for (int x = 0; x < SQRTMETABALLS; x++)
+		for (int y = 0; y < SQRTMETABALLS; y++){
+			rawPositions[x *  4 + y * SQRTMETABALLS * 4 ] = x * 0.08f;
+			rawPositions[x * 4 + y * SQRTMETABALLS * 4 + 1] = y * 0.1f;
+			rawPositions[x * 4 + y * SQRTMETABALLS * 4 + 2] = 0.0f;
+			rawPositions[x * 4 + y * SQRTMETABALLS * 4 + 3] = 0.05f;
+		}
+
+	float *rawVelocity = new float[SQRTMETABALLS * SQRTMETABALLS * 4];
+	for (int x = 0; x < SQRTMETABALLS; x++)
+		for (int y = 0; y < SQRTMETABALLS; y++){
+			rawVelocity[x * 4 + y * SQRTMETABALLS * 4] = 0.f;
+			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 1] = .0f;
+			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 2] = 0.f;
+			rawVelocity[x * 4 + y * SQRTMETABALLS * 4 + 3] = 0.f;
+		}
+
+	for (int i = 0; i < 2; i++){
+		m_physicsFBO[i] = new globjects::Framebuffer;
+		
+		m_positionTexture[i] = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+		m_positionTexture[i]->image2D(0, gl::GL_RGBA32F, SQRTMETABALLS, SQRTMETABALLS, 0, gl::GL_RGBA, gl::GL_FLOAT, rawPositions);
+		m_physicsFBO[i]->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_positionTexture[i], 0);
+
+		m_velocityTexture[i] = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+		m_velocityTexture[i]->image2D(0, gl::GL_RGBA, SQRTMETABALLS, SQRTMETABALLS, 0, gl::GL_RGBA, gl::GL_FLOAT, rawVelocity);
+		m_physicsFBO[i]->attachTexture(gl::GL_COLOR_ATTACHMENT1, m_velocityTexture[i], 0);
+	}
+
+	m_particleInfoTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
+	m_particleInfoTexture->image2D(0, gl::GL_RG, SQRTMETABALLS, SQRTMETABALLS, 0, gl::GL_RG, gl::GL_UNSIGNED_BYTE, nullptr);;
+
+	m_physicsFBO[0]->attachTexture(gl::GL_COLOR_ATTACHMENT2, m_particleInfoTexture, 0);
+	m_physicsFBO[1]->attachTexture(gl::GL_COLOR_ATTACHMENT2, m_particleInfoTexture, 0);
+
+	delete rawPositions;
+	delete rawVelocity;
+
+	//!Physics -----------------------------------------------------------------
+
 }
 
 void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
@@ -230,6 +279,18 @@ void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/thirdPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/thirdPass.frag")
 	);
+
+	//Physics ------------------------------------------------------------------
+	m_programPhysics[0] = new globjects::Program;
+	m_programPhysics[0]->attach(
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/velocityCompution.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/velocityCompution.frag"));
+
+	m_programPhysics[1] = new globjects::Program;
+	m_programPhysics[1]->attach(
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/positionCompution.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/positionCompution.frag"));
+	//!Physics -----------------------------------------------------------------
 }
 
 void ScreenSpaceFluidRenderer::setupCubemap()
@@ -264,16 +325,17 @@ void ScreenSpaceFluidRenderer::setupCubemap()
 
 void ScreenSpaceFluidRenderer::setupMetaballs(MetaballsExample * painter)
 {
-	m_metaballs = painter->getMetaballs();
+	//m_metaballs = painter->getMetaballs();
+	initializeIndices();
 
-	m_vertices = new globjects::Buffer;
-	m_vertices->setData(m_metaballs, gl::GL_DYNAMIC_DRAW);
+	m_textCoords = new globjects::Buffer;
+	m_textCoords->setData(m_indices, gl::GL_DYNAMIC_DRAW);
 
 	m_vao = new globjects::VertexArray;
 	auto binding = m_vao->binding(0);
 	binding->setAttribute(0);
-	binding->setBuffer(m_vertices, 0, 4 * sizeof(float));
-	binding->setFormat(4, gl::GL_FLOAT);
+	binding->setBuffer(m_textCoords, 0, 2 * sizeof(float));
+	binding->setFormat(2, gl::GL_FLOAT);
 	m_vao->enable(0);
 }
 
@@ -299,8 +361,9 @@ void ScreenSpaceFluidRenderer::setupScreenAlignedQuad(MetaballsExample * painter
 
 void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 {
-	m_metaballs = painter->getMetaballs();
-	m_vertices->setSubData(m_metaballs);
+	//m_metaballs = painter->getMetaballs();
+	
+	m_textCoords->setSubData(m_indices);
 	m_vao->bind();
 
 	m_thicknessFBO->bind();
@@ -310,14 +373,21 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 	gl::glBlendFunc(gl::GL_ONE, gl::GL_ONE);
 
 	m_programThickness->use();
+	//Position computition
+	unsigned short int activeText = m_frame % 2;
+	m_positionTexture[!activeText]->bindActive(gl::GL_TEXTURE0);
+	m_program->setUniform(m_program->getUniformLocation("positionTexture"), 0);
+	//
+
 	m_programThickness->setUniform("view", painter->cameraCapability()->view());
 	m_programThickness->setUniform("projection", painter->projectionCapability()->projection());
 	m_programThickness->setUniform("sphere_radius", m_sphereRadius);
 	m_programThickness->setUniform("near", painter->projectionCapability()->zNear());
 	m_programThickness->setUniform("far", painter->projectionCapability()->zFar());
 
-	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
+	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_indices.size()));
 
+	m_positionTexture[!activeText]->unbind();
 	m_vao->unbind();
 	m_programThickness->release();
 	m_thicknessFBO->unbind();
@@ -325,8 +395,8 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 
 void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 {
-	m_metaballs = painter->getMetaballs();
-	m_vertices->setSubData(m_metaballs);
+	//m_metaballs = painter->getMetaballs();
+	m_textCoords->setSubData(m_indices);
 	m_vao->bind();
 
 	m_metaballFBO->bind();
@@ -335,6 +405,13 @@ void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 	gl::glDepthFunc(gl::GL_LESS);
 
 	m_program->use();
+
+	//Position computition
+	unsigned short int activeText = m_frame % 2;
+	m_positionTexture[!activeText]->bindActive(gl::GL_TEXTURE0);
+	m_program->setUniform(m_program->getUniformLocation("positionTexture"), 0);
+	//
+
 	m_program->setUniform("view", painter->cameraCapability()->view());
 	m_program->setUniform("projection", painter->projectionCapability()->projection());
 	m_program->setUniform("sphere_radius", m_sphereRadius);
@@ -342,10 +419,11 @@ void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 	m_program->setUniform("near", painter->projectionCapability()->zNear());
 	m_program->setUniform("far", painter->projectionCapability()->zFar());
 
-	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
+	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_indices.size()));
 
 	m_vao->unbind();
 	m_program->release();
+	m_positionTexture[!activeText]->unbind();
 	gl::glDisable(gl::GL_DEPTH_TEST);
 	m_metaballFBO->unbind();
 }
@@ -402,7 +480,7 @@ void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 
 	for (unsigned int i = 0; i < m_blurringIterations - 1; ++i)
 	{
-		gl::glFinish();
+
 		m_blurringFBO[current]->bind();
 		gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
 		gl::glEnable(gl::GL_DEPTH_TEST);
@@ -486,7 +564,7 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 
 	//m_colorTexture2->bindActive(gl::GL_TEXTURE0);
 	//m_programFinal->setUniform(m_programFinal->getUniformLocation("colorTexture"), 0);
-
+	
 	if (!m_bilateral)
 		m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE1);
 	else
@@ -517,4 +595,71 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 	gl::glDisable(gl::GL_DEPTH_TEST);
 	m_vaoPlan->unbind();
 	m_finalFBO->unbind();
+}
+
+void ScreenSpaceFluidRenderer::computePhysics(MetaballsExample * painter, float elapsed){
+
+	int index = 0; //which portion of data is in use
+	//change Viewport
+	gl::glViewport(0, 0, SQRTMETABALLS, SQRTMETABALLS);
+
+	//update velocity ------------------------------------------------------------------
+	unsigned short int activeBuffer = m_frame % 2;
+	m_physicsFBO[activeBuffer]->bind();
+	m_vaoPlan->bind();
+
+
+	m_programPhysics[0]->use();
+	m_velocityTexture[!activeBuffer]->bindActive(gl::GL_TEXTURE0);
+	m_positionTexture[!activeBuffer]->bindActive(gl::GL_TEXTURE1);
+	m_particleInfoTexture->bindActive(gl::GL_TEXTURE2);
+
+	m_programPhysics[0]->setUniform(m_programPhysics[0]->getUniformLocation("velocityTexture"), 0);
+	m_programPhysics[0]->setUniform(m_programPhysics[0]->getUniformLocation("positionTexture"), 1);
+	m_programPhysics[0]->setUniform(m_programPhysics[0]->getUniformLocation("particleInfoTexture"), 2);
+
+	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+
+	m_velocityTexture[!activeBuffer]->unbind();
+	m_positionTexture[!activeBuffer]->unbind();
+	m_particleInfoTexture->unbind();
+
+	m_programPhysics[0]->release();
+	m_vaoPlan->unbind();
+	m_physicsFBO[activeBuffer]->unbind();
+	//!update velocity ------------------------------------------------------------------
+	
+	//Position velocity ------------------------------------------------------------------
+	m_physicsFBO[activeBuffer]->bind();
+	m_vaoPlan->bind();
+
+	m_programPhysics[1]->use();
+	m_velocityTexture[!activeBuffer]->bindActive(gl::GL_TEXTURE0);
+	m_positionTexture[!activeBuffer]->bindActive(gl::GL_TEXTURE1);
+	m_particleInfoTexture->bindActive(gl::GL_TEXTURE2);
+
+	m_programPhysics[1]->setUniform(m_programPhysics[1]->getUniformLocation("velocityTexture"), 0);
+	m_programPhysics[1]->setUniform(m_programPhysics[1]->getUniformLocation("positionTexture"), 1);
+	m_programPhysics[1]->setUniform(m_programPhysics[1]->getUniformLocation("particleInfoTexture"), 2);
+
+	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+
+	m_velocityTexture[!activeBuffer]->unbind();
+	m_positionTexture[!activeBuffer]->unbind();
+	m_particleInfoTexture->unbind();
+
+	m_programPhysics[1]->release();
+	m_vaoPlan->unbind();
+	m_physicsFBO[activeBuffer]->unbind();
+	//!Position velocity ------------------------------------------------------------------
+	
+	//reset Viewport
+	gl::glViewport(0, 0, painter->viewportCapability()->width(), painter->viewportCapability()->height());
+}
+
+void ScreenSpaceFluidRenderer::initializeIndices(){
+
+	for (float x = 0; x < SQRTMETABALLS; x++)
+		for (float y = 0; y < SQRTMETABALLS; y++)
+			m_indices[x + y * SQRTMETABALLS] = glm::ivec2{ x , y};
 }

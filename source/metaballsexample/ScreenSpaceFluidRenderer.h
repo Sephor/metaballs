@@ -3,10 +3,15 @@
 #include "AbstractRenderer.h"
 
 #include <array>
+#include <vector>
 
 #include <glm/vec4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 
 #include <globjects\base\ref_ptr.h>
+
+#define SQRTMETABALLS 64
 
 namespace globjects
 {
@@ -36,6 +41,7 @@ public:
 	bool getBilateral() const;
 
 private:
+	int m_frame;
 	bool m_bilateral;
 	int m_blurFilterSize;
 	unsigned int m_blurringIterations;
@@ -45,9 +51,8 @@ private:
 	std::vector<float> m_binomCoeff;
 	std::vector<int> m_binomOffset;
 
-	std::array<glm::vec4, 400> m_metaballs;
 
-	globjects::ref_ptr<globjects::Buffer> m_vertices;
+	globjects::ref_ptr<globjects::Buffer> m_textCoords;
 	globjects::ref_ptr<globjects::Buffer> m_verticesPlan;
 	globjects::ref_ptr<globjects::VertexArray> m_vao;
 	globjects::ref_ptr<globjects::VertexArray> m_vaoPlan;
@@ -57,11 +62,26 @@ private:
 	globjects::ref_ptr<globjects::Program> m_programSmoothing3;
 	globjects::ref_ptr<globjects::Program> m_programFinal;
 	globjects::ref_ptr<globjects::Program> m_programThickness;
+	
 	globjects::ref_ptr<globjects::Framebuffer> m_metaballFBO;
 	std::array<globjects::ref_ptr<globjects::Framebuffer>, 2> m_blurringFBO;
 	globjects::ref_ptr<globjects::Framebuffer> m_finalFBO;
 	globjects::ref_ptr<globjects::Framebuffer> m_thicknessFBO;
 
+	//Physics ------------------------------------------------------------------
+	
+	std::array<globjects::ref_ptr<globjects::Program>, 2> m_programPhysics;
+
+	std::array<globjects::ref_ptr<globjects::Framebuffer>, 2> m_physicsFBO;
+	
+	std::array<globjects::ref_ptr<globjects::Texture>, 2> m_velocityTexture;
+	std::array<globjects::ref_ptr<globjects::Texture>, 2> m_positionTexture;
+	
+	globjects::ref_ptr<globjects::Texture> m_particleInfoTexture;
+	
+	std::array< glm::ivec2, SQRTMETABALLS * SQRTMETABALLS> m_indices;
+	//!Physics -----------------------------------------------------------------
+	
 	globjects::ref_ptr<globjects::Texture> m_metaballDummy;
 	globjects::ref_ptr<globjects::Texture> m_metaballTexture;
 
@@ -86,4 +106,10 @@ private:
 	void bilateralBlur(MetaballsExample * painter);
 	void drawThirdPass(MetaballsExample * painter);
 	void drawThicknessPass(MetaballsExample * painter);
+	
+	//!Physics --------------------------------------------------------------------
+	void computePhysics(MetaballsExample * painter, float elapsed);
+	void initializeIndices();
+	//Physics ---------------------------------------------------------------------
+
 };

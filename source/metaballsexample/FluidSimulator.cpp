@@ -6,7 +6,7 @@
 #include <glm\gtx\rotate_vector.hpp>
 
 FluidSimulator::FluidSimulator() 
-	: m_gravConstant(0.f, -1.f, 0.f)
+	: m_gravConstant(0.f, -0.3f, 0.f)
 	, m_isRunning(false)
 	, m_metaballSelector(0)
 	, m_gen(m_rd())
@@ -20,9 +20,9 @@ FluidSimulator::FluidSimulator()
 	m_groundPlane.distance = .0f;
 	m_groundPlane.friction = .5f;
 
-	m_metaballEmitter.period = .01f;
+	m_metaballEmitter.period = .03f;
 	m_metaballEmitter.position = glm::vec3(-1.f, 5.f, 0.f);
-	m_metaballEmitter.startVelocity = glm::vec3(1.f, 0.f, 0.f);
+	m_metaballEmitter.startVelocity = glm::vec3(0.f, 0.f, 0.f);
 	m_metaballEmitter.nextEmission = 0;
 	m_metaballEmitter.metaballRadius = .1f;
 	m_metaballEmitter.spread = .5f;
@@ -151,11 +151,12 @@ void FluidSimulator::applyRepulsion()
 			float radiusSum = m_metaballs[j].radius + m_metaballs[i].radius;
 			float repulsionLimit = radiusSum * m_repulsionLimitFactor;
 			glm::vec3 difference = m_metaballs[j].position - m_metaballs[i].position;
-			float distance = glm::length(difference);
+			float distance = glm::dot(difference, difference);
 
-			if (distance > radiusSum) continue;
-
-			float sqrtRadiusSum = sqrt(radiusSum);
+			if (distance > radiusSum*radiusSum) continue;
+			
+			distance = sqrtf(distance);
+			float sqrtRadiusSum = sqrtf(radiusSum);
 			float forceMagnitude;
 
 			if (distance > repulsionLimit)
@@ -168,11 +169,25 @@ void FluidSimulator::applyRepulsion()
 			{
 				float term = distance / (radiusSum * m_repulsionLimitFactor) * sqrtRadiusSum;
 				forceMagnitude = m_repulsionFactor * (radiusSum - term * term);
+				forceMagnitude *= collisionFactor(m_metaballs[j], m_metaballs[i]);
 			}
 			glm::vec3 force = forceMagnitude / distance * difference;
 			m_metaballs[i].acceleration -= force;
 			m_metaballs[j].acceleration += force;
 		}
+}
+
+float FluidSimulator::collisionFactor(Metaball& ball1 , Metaball& ball2){
+
+	glm::vec3 veloDifference = ball1.velocity - ball2.velocity;
+	glm::vec3 posDifference = ball2.position - ball1.position;
+
+	float factor = glm::dot( veloDifference , glm::normalize(posDifference)); 
+
+	if (factor > 0 ){
+		return 1.f + 10* factor;
+	} else 
+	return 1.f;
 }
 
 void FluidSimulator::emitMetaball()

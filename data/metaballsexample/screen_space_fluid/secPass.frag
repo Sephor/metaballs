@@ -128,7 +128,7 @@ void main()
 		gl_FragDepth = 1.0;
 	else
 	{
-		const float dt = 0.000055;
+		const float dt = 0.0002;
 		const float dzt = 1000.0;
 		vec3 dxyz = meanCurvature(textCoord);
 		
