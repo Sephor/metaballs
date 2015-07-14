@@ -423,6 +423,9 @@ void ScreenSpaceFluidRenderer::drawGround(MetaballsExample * painter)
 	m_shadowTexture->bindActive(gl::GL_TEXTURE0);
 	m_programGround->setUniform(m_programGround->getUniformLocation("shadowTexture"), 0);
 
+	m_shadowThicknessTexture->bindActive(gl::GL_TEXTURE1);
+	m_programGround->setUniform(m_programGround->getUniformLocation("thicknessTexture"), 1);
+
 	m_programGround->setUniform("view", painter->cameraCapability()->view());
 	m_programGround->setUniform("projection", painter->projectionCapability()->projection());
 	m_programGround->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
@@ -604,6 +607,7 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 	m_programFinal->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
 	m_programFinal->setUniform("near", painter->projectionCapability()->zNear());
 	m_programFinal->setUniform("far", painter->projectionCapability()->zFar());
+	m_programFinal->setUniform("lightPos", m_camera.eye);
 
 	m_programFinal->setUniform("viewShadow", m_camera.view);
 	m_programFinal->setUniform("projectionShadow", m_camera.projection);

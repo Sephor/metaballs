@@ -16,6 +16,7 @@ uniform mat4 projectionInverted;
 uniform vec2 viewport;
 uniform float near;
 uniform float far;
+uniform vec3 lightPos;
 
 uniform mat4 viewShadow;
 uniform mat4 projectionShadow;
@@ -163,7 +164,7 @@ void main()
 		vec3 worldSpaceNormal = normalize((viewInverted * vec4(n, 1.0)).xyz);
 		float fresnelTerm = fresnel(normalize(viewVector), n);
 		//fresnelTerm = fresnel(-calcEye(textCoord), n);
-		float lambertTerm = max(0.0, dot(normalize(light - viewVector), n));
+		float lambertTerm = max(0.0, dot(normalize(lightPos - viewVector), n));
 		
 		/* reflect */
 		vec3 r = reflect(normalize(v_sky), worldSpaceNormal);
@@ -180,24 +181,28 @@ void main()
 		
 		//refractColor = mix(vec4(min(exp(vec3(1.0) - inverseWaterColor * vec3(thickness)), darkestWaterColor), 1.0), refractColor, exp(-thickness));
 		//refractColor = vec4(exp(waterColor * vec3(thickness)) * 0.01, 1.0);
-		refractColor = mix(vec4(waterColorf + vec3(0.2, 0.2, 0.4), 1.0), texture(skybox, refr), exp(-thickness));
+		vec4 wColor = exp(-vec4(0.6f, 0.2f, 0.05f, 3.0f) * thickness * 5.0);
+		//refractColor = mix(vec4(waterColorf + vec3(0.2, 0.2, 0.4), 1.0), texture(skybox, refr), exp(-thickness));
+		refractColor = mix(wColor, texture(skybox, refr), exp(-thickness));
 		float strange = dot(worldSpaceNormal, 0.5 * (v_sky + normalize(light)));
-		color = refractColor * (1.0 - fresnelTerm) +  reflectColor * fresnelTerm + min(0.4, lambertTerm);
+		color = refractColor * (1.0 - fresnelTerm) +  reflectColor * fresnelTerm;// + min(0.4, lambertTerm);
+		//color = wColor;
 		//color = vec4(viewVector, 1.0);
 		//color = vec4(calcEye(textCoord), 1.0);
 		//color = vec4(vec3(lambertTerm), 1.0);
-		color = texture(depthTexture, textCoord);
-		color = texture(shadowThicknessTexture, textCoord);
+		//color = texture(depthTexture, textCoord);
+		//color = texture(shadowThicknessTexture, textCoord);
 	}
 	else
 	{
 		gl_FragDepth = texture(groundDepthTexture, textCoord).x;
 		color = texture(groundTexture, textCoord);
-		color = texture(groundDepthTexture, textCoord);
+		//color = texture(groundDepthTexture, textCoord);
 	}
 	
 	if(metaballDepth == 1.0 && groundDepth == 1.0)
 	{
 		color = texture(skybox, vec3(v_sky.x, -v_sky.y, v_sky.z));
 	}
+	//color = vec4(vec3(texture(shadowThicknessTexture, textCoord).x), 1.0);
 }
