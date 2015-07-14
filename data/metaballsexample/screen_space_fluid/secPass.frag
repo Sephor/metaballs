@@ -132,7 +132,7 @@ void main()
 		const float dzt = 1000.0;
 		vec3 dxyz = meanCurvature(textCoord);
 
-		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 + (abs(dxyz.x) + abs(dxyz.y)) * dzt);
+		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 / gl_FragDepth) * (1.0 + (abs(dxyz.x) + abs(dxyz.y)) * dzt);
 		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 + dxyz.x * dxyz.x + dxyz.y * dxyz.y);
 	}
 }

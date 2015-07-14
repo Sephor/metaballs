@@ -4,6 +4,10 @@
 uniform sampler2D depthTexture;
 uniform sampler2D thicknessTexture;
 uniform samplerCube skybox;
+uniform sampler2D shadowTexture;
+uniform sampler2D groundTexture;
+uniform sampler2D groundDepthTexture;
+uniform sampler2D shadowThicknessTexture;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -12,6 +16,9 @@ uniform mat4 projectionInverted;
 uniform vec2 viewport;
 uniform float near;
 uniform float far;
+
+uniform mat4 viewShadow;
+uniform mat4 projectionShadow;
 
 in vec2 textCoord;
 in vec3 v_sky;
@@ -143,14 +150,16 @@ vec3 elemateNormal(vec2 pos)
 
 void main()
 {
-	gl_FragDepth = texture(depthTexture, textCoord).x;
 	vec3 n = eyespaceNormal(textCoord);
 	n = normal(textCoord);
 	vec3 light = vec3(1.0, 0.0, 0.0);
-	float diffuse = max(0.0, dot(n ,  light));
-	color = vec4(0.1, 0.1, 0.5, 1.0) + vec4(vec3(0.4) * diffuse, 0.0);
-	if(gl_FragDepth != 1.0)
+	
+	float metaballDepth = texture(depthTexture, textCoord).x;
+	float groundDepth = texture(groundDepthTexture, textCoord).x;
+	
+	if(metaballDepth <= groundDepth)
 	{
+		gl_FragDepth = texture(depthTexture, textCoord).x;
 		vec3 worldSpaceNormal = normalize((viewInverted * vec4(n, 1.0)).xyz);
 		float fresnelTerm = fresnel(normalize(viewVector), n);
 		//fresnelTerm = fresnel(-calcEye(textCoord), n);
@@ -177,10 +186,18 @@ void main()
 		//color = vec4(viewVector, 1.0);
 		//color = vec4(calcEye(textCoord), 1.0);
 		//color = vec4(vec3(lambertTerm), 1.0);
+		color = texture(depthTexture, textCoord);
+		color = texture(shadowThicknessTexture, textCoord);
 	}
 	else
 	{
+		gl_FragDepth = texture(groundDepthTexture, textCoord).x;
+		color = texture(groundTexture, textCoord);
+		color = texture(groundDepthTexture, textCoord);
+	}
+	
+	if(metaballDepth == 1.0 && groundDepth == 1.0)
+	{
 		color = texture(skybox, vec3(v_sky.x, -v_sky.y, v_sky.z));
 	}
-	//color = vec4(vec3(gl_FragDepth), 0.0);
 }

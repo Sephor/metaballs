@@ -9,7 +9,8 @@ out vec3 viewVector;
 uniform mat4 projectionInverted;
 uniform mat4 view;
 
-void main() {
+void main() 
+{
 	v_sky = (projectionInverted * vec4(in_vertex, 0.0, 1.0) * view).xyz;
 	gl_Position = vec4(in_vertex, 0.0, 1.0);
 	textCoord = (in_vertex + vec2(1.0)) / 2;
