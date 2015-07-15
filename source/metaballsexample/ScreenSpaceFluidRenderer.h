@@ -82,6 +82,8 @@ private:
 	globjects::ref_ptr<globjects::Program> m_programSmoothing3;
 	globjects::ref_ptr<globjects::Program> m_programFinal;
 	globjects::ref_ptr<globjects::Program> m_programThickness;
+	globjects::ref_ptr<globjects::Program> m_programBackground;
+
 	globjects::ref_ptr<globjects::Framebuffer> m_metaballFBO;
 	std::array<globjects::ref_ptr<globjects::Framebuffer>, 2> m_blurringFBO;
 	globjects::ref_ptr<globjects::Framebuffer> m_finalFBO;

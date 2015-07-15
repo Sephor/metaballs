@@ -219,10 +219,10 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 void ScreenSpaceFluidRenderer::setupGround()
 {
 	std::vector<glm::vec3> vertices = {
-		glm::vec3(-5.f, -.1f, 5.f),
-		glm::vec3(-5.f, -.1f, -5.f),
-		glm::vec3(5.f, -.1f, 5.f),
-		glm::vec3(5.f, -.1f, -5.f) };
+		glm::vec3(-25.f, -.1f, 25.f),
+		glm::vec3(-25.f, -.1f, -25.f),
+		glm::vec3(25.f, -.1f, 25.f),
+		glm::vec3(25.f, -.1f, -25.f) };
 
 	m_ground = new globjects::Buffer;
 	m_ground->setData(vertices, gl::GL_STATIC_DRAW);
@@ -279,17 +279,23 @@ void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/thirdPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/thirdPass.frag")
 	);
+
+	m_programBackground = new globjects::Program;
+	m_programBackground->attach(
+		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/background.vert"),
+		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/background.frag")
+	);
 }
 
 void ScreenSpaceFluidRenderer::setupCubemap()
 {
 	std::vector<std::string> cubemap(6);
-	cubemap[0] = "data/metaballsexample/raycasting/env_cube_px.png";
-	cubemap[1] = "data/metaballsexample/raycasting/env_cube_nx.png";
-	cubemap[2] = "data/metaballsexample/raycasting/env_cube_ny.png";
-	cubemap[3] = "data/metaballsexample/raycasting/env_cube_py.png";
-	cubemap[4] = "data/metaballsexample/raycasting/env_cube_pz.png";
-	cubemap[5] = "data/metaballsexample/raycasting/env_cube_nz.png";
+	cubemap[0] = "data/metaballsexample/cubemaps/cube_gen_11_px.jpg";
+	cubemap[1] = "data/metaballsexample/cubemaps/cube_gen_11_nx.jpg";
+	cubemap[2] = "data/metaballsexample/cubemaps/cube_gen_11_ny.jpg";
+	cubemap[3] = "data/metaballsexample/cubemaps/cube_gen_11_py.jpg";
+	cubemap[4] = "data/metaballsexample/cubemaps/cube_gen_11_pz.jpg";
+	cubemap[5] = "data/metaballsexample/cubemaps/cube_gen_11_nz.jpg";
 
 	m_skybox = globjects::Texture::createDefault(gl::GL_TEXTURE_CUBE_MAP);
 
@@ -413,7 +419,7 @@ void ScreenSpaceFluidRenderer::drawGround(MetaballsExample * painter)
 {
 	m_groundFBO->bind();
 	gl::glEnable(gl::GL_DEPTH_TEST);
-	gl::glDepthFunc(gl::GL_LESS);
+	gl::glDepthFunc(gl::GL_LEQUAL);
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 
 	m_vaoGround->bind();
@@ -435,9 +441,22 @@ void ScreenSpaceFluidRenderer::drawGround(MetaballsExample * painter)
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-	gl::glDisable(gl::GL_DEPTH_TEST);
-	m_vaoGround->unbind();
 	m_programGround->release();
+	m_vaoGround->unbind();
+	m_vaoPlan->bind();
+	m_programBackground->use();
+
+	m_skybox->bindActive(gl::GL_TEXTURE0);
+	m_programBackground->setUniform(m_programBackground->getUniformLocation("skybox"), 0);
+
+	m_programBackground->setUniform("view", painter->cameraCapability()->view());
+	m_programBackground->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+
+	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
+
+	gl::glDisable(gl::GL_DEPTH_TEST);
+	m_vaoPlan->unbind();
+	m_programBackground->release();
 	m_groundFBO->unbind();
 }
 

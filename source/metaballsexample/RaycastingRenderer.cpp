@@ -64,12 +64,12 @@ void RaycastingRenderer::initialize(MetaballsExample * painter)
 	);
 
 	std::vector<std::string> cubemap(6);
-	cubemap[0] = "data/metaballsexample/raycasting/env_cube_px.png";
-	cubemap[1] = "data/metaballsexample/raycasting/env_cube_nx.png";
-	cubemap[2] = "data/metaballsexample/raycasting/env_cube_ny.png";
-	cubemap[3] = "data/metaballsexample/raycasting/env_cube_py.png";
-	cubemap[4] = "data/metaballsexample/raycasting/env_cube_pz.png";
-	cubemap[5] = "data/metaballsexample/raycasting/env_cube_nz.png";
+	cubemap[0] = "data/metaballsexample/cubemaps/env_cube_px.png";
+	cubemap[1] = "data/metaballsexample/cubemaps/env_cube_nx.png";
+	cubemap[2] = "data/metaballsexample/cubemaps/env_cube_ny.png";
+	cubemap[3] = "data/metaballsexample/cubemaps/env_cube_py.png";
+	cubemap[4] = "data/metaballsexample/cubemaps/env_cube_pz.png";
+	cubemap[5] = "data/metaballsexample/cubemaps/env_cube_nz.png";
 
 	m_skybox = globjects::Texture::createDefault(gl::GL_TEXTURE_CUBE_MAP);
 
