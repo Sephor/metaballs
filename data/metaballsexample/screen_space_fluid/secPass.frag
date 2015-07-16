@@ -75,12 +75,16 @@ vec3 meanCurvature(vec2 pos) {
 	float zdxp = texture(depthTexture, pos + dx).x;
 	float zdxn = texture(depthTexture, pos - dx).x;
 	float zdx = 0.5 * (zdxp - zdxn);
-	zdx = (zdxp == 0.0 || zdxn == 0.0) ? 0.0 : zdx;
+	zdx = (zdxp == 1.0) ? zc - zdxn : zdx;
+	zdx = (zdxn == 1.0) ? zdxp - zc : zdx;
+	//zdx = (zdxp == 1.0 || zdxn == 1.0) ? 0.0 : zdx;
 
 	float zdyp = texture(depthTexture, pos + dy).x;
 	float zdyn = texture(depthTexture, pos - dy).x;
 	float zdy = 0.5 * (zdyp - zdyn);
-	zdy = (zdyp == 0.0 || zdyn == 0.0) ? 0.0 : zdy;
+	zdy = (zdyp == 1.0) ? zc - zdyn : zdy;
+	zdy = (zdyn == 1.0) ? zdyp - zc : zdy;
+	//zdy = (zdyp == 1.0 || zdyn == 1.0) ? 0.0 : zdy;
 
 	// Take second order finite differences
 	float zdx2 = zdxp + zdxn - 2.0 * zc;
@@ -132,7 +136,7 @@ void main()
 		const float dzt = 1000.0;
 		vec3 dxyz = meanCurvature(textCoord);
 
-		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 / gl_FragDepth) * (1.0 + (abs(dxyz.x) + abs(dxyz.y)) * dzt);
+		//gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 / gl_FragDepth) * (1.0 + (abs(dxyz.x) + abs(dxyz.y)) * dzt);
 		gl_FragDepth = tempDepth + dxyz.z * dt * (1.0 + dxyz.x * dxyz.x + dxyz.y * dxyz.y);
 	}
 }
