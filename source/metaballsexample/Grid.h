@@ -30,6 +30,8 @@ public:
 
 	void updateMetaball(Metaball& metaball, glm::vec3& newPosition);
 
+	bool isInGrid(glm::ivec3 gridCoords) const;
+
 private:
 	//index = size * size * x + size * y + z 
 	std::vector <std::vector<Metaball*> > m_data;
@@ -43,5 +45,4 @@ private:
 	//helper functions
 	int toIndex(glm::ivec3 gridCoords) const;
 	int clampToGrid(int value) const;
-	bool isInGrid(glm::ivec3 gridCoords) const;
 };

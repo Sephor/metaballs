@@ -15,7 +15,7 @@ FluidSimulator::FluidSimulator()
 	, m_repulsionLimitFactor(.7f)
 	, m_repulsionFactor(5.f)
 	, m_attractionFactor(1.f)
-	, m_grid(Grid(100, 0.4f, glm::vec3(-20.f, 0.f, -20.f)))
+	, m_grid(Grid(200, 0.2f, glm::vec3(-20.f, 0.f, -20.f)))
 {
 	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
 	m_groundPlane.distance = .0f;
@@ -152,6 +152,8 @@ glm::vec3 FluidSimulator::computeInteractions(Metaball& metaball, std::vector<Me
 	glm::vec3 forceSum{0.f};
 	for (auto& other_metaball : neighbours)
 	{
+		if (other_metaball == &metaball) continue;
+
 		float radiusSum = other_metaball->radius + metaball.radius;
 		float repulsionLimit = radiusSum * m_repulsionLimitFactor;
 		glm::vec3 difference = other_metaball->position - metaball.position;
@@ -184,8 +186,16 @@ void FluidSimulator::updateRepulsion()
 {
 	for (auto& metaball : m_metaballs)
 	{
-		auto& neighbours = m_grid.getNeighbors(metaball);
-		metaball.acceleration += computeInteractions(metaball, neighbours);
+		glm::ivec3 coords(m_grid.cellCoords(metaball));
+		for (int xx = -1; xx <= 1; xx++)
+			for (int yy = -1; yy <= 1; yy++)
+				for (int zz = -1; zz <= 1; zz++)
+				{
+					glm::ivec3 neighborCoords = coords + glm::ivec3(xx, yy, zz);
+					if (!m_grid.isInGrid(neighborCoords)) continue;
+
+					metaball.acceleration += computeInteractions(metaball, m_grid.getMetaballs(neighborCoords));
+				}
 	}
 }
 
@@ -216,28 +226,33 @@ void FluidSimulator::updatePositions(float elapsedTime)
 
 void FluidSimulator::emitMetaball()
 {
+	//generate two vectors with random lenth
 	glm::vec3 posOffset(m_dis(m_gen) * m_metaballEmitter.spread, .0f, .0f);
 	glm::vec3 velOffset(m_dis(m_gen) * m_metaballEmitter.spray, .0f, .0f);
 	glm::vec3 normal(0.f, 0.f, 1.f);
 
+	//randomly rotate the position offset
 	auto randomAngle = m_dis(m_gen) * 2.f * m_twoPi;
 	posOffset = glm::rotateY(posOffset, randomAngle);
 	normal = glm::rotateY(normal, randomAngle);
 	posOffset = glm::rotate(posOffset, m_dis(m_gen) * m_twoPi, normal);
-
 	normal = glm::vec3(0.f, 0.f, 1.f);
 
+	//randomly rotate the velocity offset
 	randomAngle = m_dis(m_gen) * 2.f * m_twoPi;
 	velOffset = glm::rotateY(velOffset, randomAngle);
 	normal = glm::rotateY(normal, randomAngle);
 	velOffset = glm::rotate(velOffset, m_dis(m_gen) * m_twoPi, normal);
 
+	//emit a metaball
 	m_metaballEmitter.nextEmission += m_metaballEmitter.period;
 	m_metaballs[m_metaballSelector].velocity = m_metaballEmitter.startVelocity + velOffset;
 	m_metaballs[m_metaballSelector].radius = m_metaballEmitter.metaballRadius;
 	//GRID
 	m_grid.updateMetaball(m_metaballs[m_metaballSelector], m_metaballEmitter.position + posOffset);
 	//!GRID
+
+	//increase the counter to the next metaball
 	m_metaballSelector = (m_metaballSelector + 1) % m_metaballs.size();
 }
 
@@ -248,21 +263,44 @@ void FluidSimulator::update()
 
 	float elapsedTime = std::chrono::duration<float, std::ratio<1, 1>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
 	m_lastTime = std::chrono::high_resolution_clock::now();
-//DEBUG
-	static int frame;
-	if (frame % 30 == 0) {
-		std::cout << "Framerate: " << 1/elapsedTime << std::endl;
-	};
-//!DEBUG
+
 	elapsedTime = (elapsedTime > 0.05f) ? 0.05f : elapsedTime;
+
 	m_metaballEmitter.nextEmission -= elapsedTime;
 	while (m_metaballEmitter.nextEmission <= 0.f)
 	{
 		emitMetaball();
 	}
 
+	//BENCHMARKING
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> tZero;
+	tZero = std::chrono::high_resolution_clock::now();
+
 	updateRepulsion();
+
+	//BENCHMARKING
+	int updateRepulsionTime = (int)std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - tZero).count();
+	tZero = std::chrono::high_resolution_clock::now();
+
 	updatePositions(elapsedTime);
+
+	//BENCHMARKING
+	int updatePositionTime = (int)std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - tZero).count();
+
+	//BENCHMARKING
+	int totalTime = (int) std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
+	
+	//DEBUG
+	static int frame;
+	if (frame % 30 == 0) {
+		std::cout << "fps: " << (int)(1000.f / totalTime)
+			<< " T: " << totalTime
+			<< " Rep: " << updateRepulsionTime
+			<< " Pos: " << updatePositionTime
+			<< "                \r";
+	};
+	//!DEBUG
+
 }
 
 bool FluidSimulator::doesCollide(const Metaball & metaball, const Plane & plane, float deltaTime)
