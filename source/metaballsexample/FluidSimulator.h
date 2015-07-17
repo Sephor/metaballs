@@ -8,19 +8,14 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include "Grid.h"
+
 class FluidSimulator
 {
 public:
 	FluidSimulator();
 	~FluidSimulator();
 
-	struct Metaball
-	{
-		float radius;
-		glm::vec3 position;
-		glm::vec3 velocity;
-		glm::vec3 acceleration;
-	};
 	struct Plane
 	{
 		glm::vec3 normal;
@@ -59,7 +54,9 @@ public:
 	float getEmitterPeriod() const;
 	void setEmitterPeriod(float value);
 
-	void applyRepulsion();
+	void updateRepulsion();
+	glm::vec3 computeInteractions(Metaball& metaball, std::vector<Metaball*>& neighbours);
+	void updatePositions(float elapsedTime);
 	void emitMetaball();
 
 private:
@@ -75,6 +72,7 @@ private:
 	Emitter m_metaballEmitter;
 	bool m_isRunning;
 	int m_metaballSelector;
+	Grid m_grid;
 
 	std::random_device m_rd;
 	std::mt19937 m_gen;
