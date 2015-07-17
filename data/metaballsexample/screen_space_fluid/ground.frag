@@ -7,9 +7,11 @@ uniform mat4 projectionShadow;
 
 uniform sampler2D shadowTexture;
 uniform sampler2D thicknessTexture;
+uniform sampler2D groundTexture;
 
 in vec3 worldPos;
 in vec4 shadowPos;
+in vec2 coords;
 
 out vec4 color;
 
@@ -26,4 +28,5 @@ void main()
 	{
 		color *= wColor;
 	}
+	color = texture(groundTexture, coords);
 }

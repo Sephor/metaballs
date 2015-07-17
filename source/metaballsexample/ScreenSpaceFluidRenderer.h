@@ -55,6 +55,7 @@ private:
 		glm::mat4 viewInverted;
 	};
 
+	float m_blurringScale;
 	bool m_bilateral;
 	int m_blurFilterSize;
 	unsigned int m_blurringIterations;
@@ -91,6 +92,8 @@ private:
 	globjects::ref_ptr<globjects::Framebuffer> m_shadowFBO;
 	globjects::ref_ptr<globjects::Framebuffer> m_shadowThicknessFBO;
 	globjects::ref_ptr<globjects::Framebuffer> m_groundFBO;
+
+	globjects::ref_ptr<globjects::Texture> m_groundTexture;
 
 	globjects::ref_ptr<globjects::Texture> m_metaballDummy;
 	globjects::ref_ptr<globjects::Texture> m_metaballTexture;

@@ -34,11 +34,16 @@ FluidSimulator::FluidSimulator()
 	{
 		Metaball m;
 		m.position = glm::vec3(i * 0.9f, 0.f, 500.f);
-		m.radius = 0.f;
+		m.radius = 0.5f;
 		m.velocity = glm::vec3(.0f);
 		m.acceleration = glm::vec3(.0f);
 		m_metaballs[i] = m;
 	}
+
+	for (int x = 0; x < 10; x++)
+		for (int y = 0; y < 10; y++)
+			for (int z = 0; z < 8; z++)
+				m_metaballs[x * 80 + 8 * y + z].position = glm::vec3(x * 0.5f, y * 0.5f, z * 0.5f);
 	m_lastTime = std::chrono::high_resolution_clock::now();
 }
 

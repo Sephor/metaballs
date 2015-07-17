@@ -11,5 +11,5 @@ void main()
 	float r = dot(normal, normal);
 	if (r > 1.0) discard;
 
-	color = vec4(vec3(mix(1.0 * metaballRadius, 0.0, r)), 1.0);
+	color = vec4(vec3(mix(0.05 * metaballRadius, 0.0, r)), 1.0);
 }
