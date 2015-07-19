@@ -104,9 +104,9 @@ globjects::Framebuffer * RaycastingRenderer::draw(
 	m_vao->bind();
 
 	//TODO: warum funktioniert die Navigation nicht mehr wenn man den Depthbuffer cleart
-	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
+	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 	gl::glEnable(gl::GL_DEPTH_TEST);
-	gl::glDepthFunc(gl::GL_LESS);
+	gl::glDepthFunc(gl::GL_LEQUAL);
 
 	m_skybox->bindActive(gl::GL_TEXTURE0);
 	m_program->use();
@@ -146,10 +146,4 @@ void RaycastingRenderer::setupFramebuffer(MetaballsExample * painter)
 	m_depthTexture = new globjects::Texture;
 	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
 	m_fbo->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
-
-	//set clearcolor and cleardepth
-	m_fbo->bind();
-	gl::glClearColor(0.f, 0.f, 0.f, 1.f);
-	gl::glClearDepth(1.f);
-	m_fbo->unbind();
 }

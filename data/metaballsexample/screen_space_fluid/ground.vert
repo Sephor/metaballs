@@ -17,6 +17,6 @@ void main()
 {
 	worldPos = in_vertex;
 	shadowPos =	projectionShadow * viewShadow * vec4(in_vertex, 1.0);
-	coords = texCoords * vec2(0.25, 1.0) + vec2(0.75, 0.0);
+	coords = texCoords;
     gl_Position = projection * view * vec4(in_vertex, 1.0);
 }

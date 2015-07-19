@@ -4,7 +4,6 @@ layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
 uniform mat4 projection;
-uniform float sphere_radius;
 
 in float radius[];
 

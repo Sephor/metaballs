@@ -1,9 +1,6 @@
 #version 330 core
 
-uniform float sphere_radius; //TODO: braucht man nicht mehr
 uniform mat4 projection;
-uniform mat4 view; //TODO: braucht man nicht mehr
-uniform vec4 light_dir; //TODO: braucht man nicht mehr
 uniform float far;
 uniform float near;
 

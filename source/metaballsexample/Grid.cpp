@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
-Grid::Grid(int size, float cellSize, glm::vec3 origin) :
-m_data(std::vector<std::vector<Metaball*>>(size * size * size))
+Grid::Grid(int size, float cellSize, glm::vec3 origin) 
+: m_data(std::vector<std::vector<Metaball*>>(size * size * size))
 , m_size(size)
 , m_cellSize(cellSize)
 , m_frontBottomLeft(origin)
@@ -67,15 +67,17 @@ void Grid::removeMetaball(Metaball& metaball)
 
 void Grid::removeMetaball(Metaball& metaball, glm::vec3 coords)
 {
-	std::vector<Metaball*>& cell = getMetaballs(coords);
-	for (auto it = cell.begin(); it != cell.end(); it++)
-	{
-		if ( (*it) == &metaball)
-		{
-			cell.erase(it);
-			return;
-		}
-	}
+	std::vector<Metaball*> cell = getMetaballs(coords);
+	//for (auto it = cell.begin(); it != cell.end(); it++)
+	//{
+	//	if ( (*it) == &metaball)
+	//	{
+	//		cell.erase(it);
+	//		return;
+	//	}
+	//}
+
+	cell.erase(std::remove(cell.begin(), cell.end(), &metaball), cell.end());
 }
 
 void Grid::updateMetaball(Metaball& metaball, glm::vec3& newPosition)
@@ -97,9 +99,9 @@ glm::ivec3 Grid::cellCoords(Metaball& metaball) const
 	coords -= m_frontBottomLeft;
 	coords /= m_cellSize;
 	return glm::ivec3(
-		clampToGrid((int)floor(coords.x)),
-		clampToGrid((int)floor(coords.y)),
-		clampToGrid((int)floor(coords.z)));
+		clampToGrid(static_cast<int>(floor(coords.x))),
+		clampToGrid(static_cast<int>(floor(coords.y))),
+		clampToGrid(static_cast<int>(floor(coords.z))));
 }
 
 int Grid::toIndex(glm::ivec3 gridCoords) const
@@ -109,9 +111,10 @@ int Grid::toIndex(glm::ivec3 gridCoords) const
 
 bool Grid::isInGrid(glm::ivec3 gridCoords) const
 {
-	if (gridCoords.x < 0 || gridCoords.x >= m_size) return false;
-	if (gridCoords.y < 0 || gridCoords.y >= m_size) return false;
-	if (gridCoords.z < 0 || gridCoords.z >= m_size) return false;
+	if ((gridCoords.x < 0 || gridCoords.x >= m_size) ||
+		(gridCoords.y < 0 || gridCoords.y >= m_size) ||
+		(gridCoords.z < 0 || gridCoords.z >= m_size))
+		return false;
 	return true;
 }
 
@@ -119,7 +122,7 @@ int Grid::clampToGrid(int value) const
 {
 	if (value < 0)
 		return 0;
-	if (value >= m_size)
+	else if (value >= m_size)
 		return m_size - 1;
 	return value;
 }

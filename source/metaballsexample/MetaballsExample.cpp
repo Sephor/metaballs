@@ -58,6 +58,9 @@ void MetaballsExample::onInitialize()
 
 	m_cameraCapability->setEye(glm::vec3(0.f, 2.5f, -10.f));
 	m_cameraCapability->setCenter(glm::vec3(0.f, 2.5f, 0.f));
+
+	gl::glClearColor(0.f, 0.f, 0.f, 1.f);
+	gl::glClearDepth(1.f);
 }
 
 void MetaballsExample::onPaint()
@@ -127,8 +130,8 @@ void MetaballsExample::setBlur(bool value)
 
 void MetaballsExample::setupPropertyGroup()
 {
-	addProperty<bool>("Raycasting", this,
-		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting);
+	/*addProperty<bool>("Raycasting", this,
+		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting); */
 
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
@@ -142,8 +145,8 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<unsigned int>("Iterations", &m_SSFRenderer,
 		&ScreenSpaceFluidRenderer::getBlurringIterations, &ScreenSpaceFluidRenderer::setBlurringIterations)->setOptions({
 			{ "minimum", 1 },
-			{ "maximum", 500 },
-			{ "step", 10 },
+			{ "maximum", 5000 },
+			{ "step", 100 },
 			{ "precision", 2u } });
 
 	addProperty<float>("MetaballSize", &m_fluidSimulator,
@@ -187,6 +190,19 @@ void MetaballsExample::setupPropertyGroup()
 			{ "maximum", 2.0f },
 			{ "step", 0.01f },
 			{ "precision", 2u } });
+
+	addProperty<float>("BlurringScale", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getBlurringScale, &ScreenSpaceFluidRenderer::setBlurringScale)->setOptions({
+			{ "minimum", 1.f },
+			{ "maximum", 3.f },
+			{ "step", 0.5f },
+			{ "precision", 2u } });
+
+	addProperty<float>("TimeStep", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getTimeStep, &ScreenSpaceFluidRenderer::setTimeStep)->setOptions({
+			{ "minimum", 0.00001f },
+			{ "maximum", 0.001f },
+			{ "precision", 5u } });
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const

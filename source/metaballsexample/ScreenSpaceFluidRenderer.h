@@ -37,6 +37,12 @@ public:
 	void setBilateral(bool value);
 	bool getBilateral() const;
 
+	void setBlurringScale(float value);
+	float getBlurringScale() const;
+
+	void setTimeStep(float value);
+	float getTimeStep() const;
+
 private:
 
 	struct Camera
@@ -56,10 +62,10 @@ private:
 	};
 
 	float m_blurringScale;
+	float m_timeStep;
 	bool m_bilateral;
 	int m_blurFilterSize;
 	unsigned int m_blurringIterations;
-	const float m_sphereRadius;
 	const glm::vec4 m_lightDir;
 	Camera m_camera;
 

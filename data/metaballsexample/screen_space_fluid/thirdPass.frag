@@ -121,39 +121,6 @@ vec3 normal(vec2 pos)
     //return normalize(cross(dFdy(vz), dFdx(vz)));
 }
 
-vec3 elemateNormal(vec2 pos)
-{
-    float depth = texture(depthTexture, pos).r;
-	vec2 dx = vec2(1.0 / viewport.x, 0.0);
-	vec2 dy = vec2(0.0, 1.0 / viewport.y);
-
-    float height_left = texture(depthTexture, pos - dx).x;
-    float height_right = texture(depthTexture, pos + dx).x;
-    float height_up = texture(depthTexture, pos + dy).x;
-    float height_down = texture(depthTexture, pos - dy).x;
-
-    vec3 va,vb;
-
-    va = mix(
-            vec3(0.001*(0.01+height_right), 0.0, height_right - depth),
-            vec3(0.001*(0.01+height_left), 0.0, depth - height_left),
-            step(
-                abs(height_left-depth),
-                abs(height_right-depth)
-            )
-    );
-    vb = mix(
-        vec3(0.0, 0.001*(0.01+height_up), depth - height_up),
-        vec3(0.0, 0.001*(0.01+height_down), height_down - depth),
-        step(
-            abs(height_down-depth),
-            abs(height_up-depth)
-        )
-    );
-
-    return normalize(cross(va, vb));
-}
-
 void main()
 {
 	vec3 n = eyespaceNormal(textCoord);
@@ -174,7 +141,6 @@ void main()
 		vec3 screenSpaceNormal = normalize((projection * vec4(n, 1.0)).xyz);
 		vec4 test = projectionInverted * vec4(viewVector, 1.0);
 		vec3 viewSpaceView = normalize(test.xyz / test.w);
-		//viewSpaceView.x =
 		float fresnelTerm = fresnel(-viewVector2, n);
 		float lambertTerm = max(0.0, dot(normalize(lightPos - viewVector), n));
 
@@ -183,9 +149,8 @@ void main()
 
 		/* reflect */
 		vec3 r = reflect(normalize(v_sky), worldSpaceNormal);
-		//r = reflect(normalize(viewVector2), n);
 		r.y *= -1.0;
-		vec4 reflectColor = r.y > 0 ? vec4(1.0) : texture(skybox, r);
+		vec4 reflectColor = texture(skybox, r);
 
 		/* refract */
 		vec3 refr = refract(normalize(v_sky), worldSpaceNormal, 1.0/1.333);
@@ -193,27 +158,19 @@ void main()
 		refr2 = (textCoord - n.xy * thickness);
 		vec4 refractColor = texture(groundTexture, refr2);
 
-		//refractColor = mix(vec4(min(exp(vec3(1.0) - inverseWaterColor * vec3(thickness)), darkestWaterColor), 1.0), refractColor, exp(-thickness));
-		//refractColor = vec4(exp(waterColor * vec3(thickness)) * 0.01, 1.0);
-		vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) /* thickness * 5.0*/);
-		//refractColor = mix(vec4(waterColorf + vec3(0.2, 0.2, 0.4), 1.0), texture(skybox, refr), exp(-thickness));
+		vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) * thickness * 5.0);
 		refractColor = mix(wColor, refractColor, exp(-thickness));
 		float strange = dot(worldSpaceNormal, 0.5 * (v_sky + normalize(light)));
-		//color = refractColor * (1.0 - fresnelTerm) +  reflectColor * fresnelTerm;// + min(0.4, lambertTerm);
 		color = mix(refractColor, reflectColor, fresnelTerm);
 	}
 	else
 	{
 		gl_FragDepth = texture(groundDepthTexture, textCoord).x;
 		color = texture(groundTexture, textCoord);
-		//color = texture(groundDepthTexture, textCoord);
 	}
 
 	if(metaballDepth == 1.0 && groundDepth == 1.0)
 	{
 		color = texture(skybox, vec3(v_sky.x, -v_sky.y, v_sky.z));
 	}
-
-	//color = vec4(n, 1.0);
-	//color = vec4(vec3(gl_FragDepth * 10.0 - 9.0), 1.0);
 }

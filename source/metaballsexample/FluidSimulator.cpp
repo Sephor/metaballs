@@ -298,7 +298,7 @@ void FluidSimulator::update()
 	
 	//DEBUG
 	static int frame;
-	if (frame % 30 == 0) {
+	if (++frame % 30 == 0) {
 		std::cout << "fps: " << (int)(1000.f / totalTime)
 			<< " T: " << totalTime
 			<< " Rep: " << updateRepulsionTime
