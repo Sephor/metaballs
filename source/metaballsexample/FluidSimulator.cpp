@@ -16,6 +16,7 @@ FluidSimulator::FluidSimulator()
 	, m_repulsionFactor(5.f)
 	, m_attractionFactor(1.f)
 	, m_grid(Grid(200, 0.2f, glm::vec3(-20.f, 0.f, -20.f)))
+	, m_metaballCount(1000)
 {
 	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
 	m_groundPlane.distance = .0f;
@@ -30,15 +31,15 @@ FluidSimulator::FluidSimulator()
 	m_metaballEmitter.spray = .1f;
 
 	m_metaballs = std::vector<Metaball>();
-	m_metaballs.resize(2000);
-	for (int i = 0; i < m_metaballs.size(); i++)
+	m_metaballs.reserve(m_metaballCount);
+	for (int i = 0; i < m_metaballCount; i++)
 	{
 		Metaball m;
 		m.position = glm::vec3(i * 0.9f, 0.f, 500.f);
 		m.radius = 0.f;
 		m.velocity = glm::vec3(.0f);
 		m.acceleration = glm::vec3(.0f);
-		m_metaballs[i] = m;
+		m_metaballs.push_back(m);
 	}
 	m_lastTime = std::chrono::high_resolution_clock::now();
 }

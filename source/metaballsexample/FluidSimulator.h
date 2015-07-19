@@ -62,6 +62,7 @@ public:
 private:
 	const glm::vec3 m_gravConstant;
 	const float m_twoPi;
+	const size_t m_metaballCount;
 	float m_repulsionLimitFactor;
 	float m_repulsionFactor;
 	float m_attractionFactor;
