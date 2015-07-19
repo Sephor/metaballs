@@ -41,6 +41,7 @@ set(sources
 	${source_path}/OtherRenderer.cpp
 	${source_path}/RaycastingRenderer.cpp
 	${source_path}/ScreenSpaceFluidRenderer.cpp
+	${source_path}/Grid.cpp
 	${source_path}/plugin.cpp
 )
 
@@ -51,6 +52,7 @@ set(api_includes
 	${include_path}/AbstractRenderer.h
 	${include_path}/RaycastingRenderer.h
 	${source_path}/ScreenSpaceFluidRenderer.h
+	${source_path}/Grid.h
 )
 
 # Group source files
