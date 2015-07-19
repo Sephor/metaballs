@@ -21,6 +21,7 @@ public:
 		glm::vec3 normal;
 		float friction;
 		float distance;
+		float restitution;
 	};
 	struct Emitter
 	{
@@ -55,9 +56,14 @@ public:
 	void setEmitterPeriod(float value);
 
 	void updateRepulsion();
+	void updatePlaneCollision();
+
 	glm::vec3 computeInteractions(Metaball& metaball, std::vector<Metaball*>& neighbours);
 	void updatePositions(float elapsedTime);
 	void emitMetaball();
+
+	float distanceToPlane(Metaball& metaball, Plane& plane);
+	void initializePlanes();
 
 private:
 	const glm::vec3 m_gravConstant;
@@ -69,11 +75,11 @@ private:
 	std::vector<Metaball> m_metaballs;
 	std::vector<glm::vec4> m_metaballsAsVec;
 	bool m_metaballsChanged;
-	Plane m_groundPlane;
 	Emitter m_metaballEmitter;
 	bool m_isRunning;
 	int m_metaballSelector;
 	Grid m_grid;
+	std::vector<Plane> m_planes;
 
 	std::random_device m_rd;
 	std::mt19937 m_gen;

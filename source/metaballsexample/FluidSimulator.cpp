@@ -15,12 +15,12 @@ FluidSimulator::FluidSimulator()
 	, m_repulsionLimitFactor(.7f)
 	, m_repulsionFactor(5.f)
 	, m_attractionFactor(1.f)
-	, m_grid(Grid(200, 0.2f, glm::vec3(-20.f, 0.f, -20.f)))
+	, m_grid(Grid(20, 0.2f, glm::vec3(-1.5f, 0.f, -.5f)))
 	, m_metaballCount(1000)
 {
-	m_groundPlane.normal = glm::vec3(.0f, 1.f, .0f);
-	m_groundPlane.distance = .0f;
-	m_groundPlane.friction = .5f;
+	m_planes = std::vector<Plane>{};
+	initializePlanes();
+
 
 	m_metaballEmitter.period = .01f;
 	m_metaballEmitter.position = glm::vec3(-1.f, 5.f, 0.f);
@@ -36,22 +36,51 @@ FluidSimulator::FluidSimulator()
 	{
 		Metaball m;
 		m.position = glm::vec3(i * 0.9f, 0.f, 500.f);
-		m.radius = 0.5f;
+		m.radius = 0.f;
 		m.velocity = glm::vec3(.0f);
 		m.acceleration = glm::vec3(.0f);
 		m_metaballs.push_back(m);
 	}
 
-	for (int x = 0; x < 10; x++)
-		for (int y = 0; y < 10; y++)
-			for (int z = 0; z < 8; z++)
-				m_metaballs[x * 80 + 8 * y + z].position = glm::vec3(x * 0.5f, y * 0.5f, z * 0.5f);
+	//for (int x = 0; x < 10; x++)
+	//	for (int y = 0; y < 10; y++)
+	//		for (int z = 0; z < 8; z++)
+	//			m_metaballs[x * 80 + 8 * y + z].position = glm::vec3(x * 0.5f, y * 0.5f, z * 0.5f);
 	m_lastTime = std::chrono::high_resolution_clock::now();
 }
 
 FluidSimulator::~FluidSimulator()
 {
 	
+}
+
+void FluidSimulator::initializePlanes()
+{
+	
+	Plane plane;
+	plane.friction = .3f;
+	plane.restitution = .25f;
+	
+	plane.normal = glm::vec3(.0f, 1.f, .0f);
+	plane.distance = -m_grid.bottom();
+	m_planes.push_back(plane);
+	
+	plane.normal = glm::vec3(1.f, .0f, .0f);
+	plane.distance = m_grid.left();
+	m_planes.push_back(plane);
+
+	plane.normal = glm::vec3(-1.f, .0f, .0f);
+	plane.distance = -m_grid.right();
+	m_planes.push_back(plane);
+	
+	plane.normal = glm::vec3(.0f, .0f, -1.f);
+	plane.distance = m_grid.front();
+	m_planes.push_back(plane);
+
+	plane.normal = glm::vec3(.0f, .0f, 1.f);
+	plane.distance = -m_grid.back();
+	m_planes.push_back(plane);
+
 }
 
 const std::vector<glm::vec4>& FluidSimulator::getMetaballs()
@@ -171,16 +200,28 @@ glm::vec3 FluidSimulator::computeInteractions(Metaball& metaball, std::vector<Me
 		float sqrtRadiusSum = sqrt(radiusSum);
 		float forceMagnitude;
 
-		if (distance > repulsionLimit)
+		if (distance > repulsionLimit)//attraction
 		{
 			float halfAttInterval = (radiusSum - radiusSum * m_repulsionLimitFactor) * .5f;
 			float term = (distance - radiusSum + halfAttInterval) / halfAttInterval * sqrtRadiusSum;
 			forceMagnitude = m_attractionFactor * (term * term - radiusSum);
 		}
-		else	//attraction 
+		else	//repulsion 
 		{
-			float term = distance / (radiusSum * m_repulsionLimitFactor) * sqrtRadiusSum;
-			forceMagnitude = m_repulsionFactor * (radiusSum - term * term);
+			if ((distance < repulsionLimit * 0.75f) && (difference.y < 0.f))
+			{
+				float offset = (repulsionLimit * 0.75f - distance);
+				if (distance == 0.f)
+					difference = glm::vec3(0.0f, 1.0f, 0.0f);
+				metaball.position -= glm::normalize(difference) * offset;
+				distance = repulsionLimit * 0.75f;
+			}
+			float temp = distance / (radiusSum * repulsionLimit);
+			temp = powf(temp, 4.f) * 7.f;
+
+			//float term = distance / (radiusSum * m_repulsionLimitFactor) * sqrtRadiusSum;
+			//forceMagnitude = m_repulsionFactor * (radiusSum - term * term);
+			forceMagnitude = m_repulsionFactor * 1 / temp;
 		}
 		forceSum -= forceMagnitude / distance * difference;
 	}
@@ -212,18 +253,7 @@ void FluidSimulator::updatePositions(float elapsedTime)
 		glm::vec3 newPosition;
 		metaball.acceleration += m_gravConstant;
 		metaball.velocity += metaball.acceleration * elapsedTime;
-		if (doesCollide(metaball, m_groundPlane, elapsedTime))
-		{
-			float t0 = collisionTime(metaball, m_groundPlane);
-			newPosition = metaball.position + metaball.velocity * t0;
-			metaball.velocity = metaball.velocity - glm::dot(metaball.velocity, m_groundPlane.normal) * m_groundPlane.normal;
-			metaball.velocity -= metaball.velocity * m_groundPlane.friction * (elapsedTime - t0);
-			newPosition += metaball.velocity * (elapsedTime - t0);
-		}
-		else
-		{
-			newPosition = metaball.position + metaball.velocity * elapsedTime;
-		}
+		newPosition = metaball.position + metaball.velocity * elapsedTime;
 		m_grid.updateMetaball(metaball, newPosition);
 
 		metaball.acceleration = glm::vec3(.0f);
@@ -289,13 +319,15 @@ void FluidSimulator::update()
 	tZero = std::chrono::high_resolution_clock::now();
 
 	updatePositions(elapsedTime);
+	updatePlaneCollision();
+
 
 	//BENCHMARKING
 	int updatePositionTime = (int)std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - tZero).count();
 
 	//BENCHMARKING
 	int totalTime = (int) std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
-	
+
 	//DEBUG
 	static int frame;
 	if (frame % 30 == 0) {
@@ -306,7 +338,6 @@ void FluidSimulator::update()
 			<< "                \r";
 	};
 	//!DEBUG
-
 }
 
 bool FluidSimulator::doesCollide(const Metaball & metaball, const Plane & plane, float deltaTime)
@@ -326,4 +357,36 @@ float FluidSimulator::collisionTime(const Metaball & metaball, const Plane & pla
 		return .0f;
 	}
 	return - positionDotNormal / velocityDotNormal;
+}
+
+void FluidSimulator::updatePlaneCollision()
+{
+	for (auto& metaball : m_metaballs)
+	{
+		for (auto& plane : m_planes)
+		{
+			float distance = distanceToPlane(metaball, plane);
+			if (distance < 0)
+			{
+				distance = -distance;	//abs
+				//compute distance vector 
+				metaball.position += distance * plane.normal;
+				
+				//reflect velocity 
+				metaball.velocity = glm::reflect(metaball.velocity, plane.normal);
+				float projection = glm::dot(metaball.velocity, plane.normal);
+				glm::vec3 orthogonal = plane.normal * projection;
+				glm::vec3 parallel = metaball.velocity - orthogonal;
+				metaball.velocity -= orthogonal * (1 - plane.restitution);
+				metaball.velocity -= parallel * plane.friction;
+
+
+			}
+		}
+	}
+}
+
+float FluidSimulator::distanceToPlane(Metaball& metaball, Plane& plane)
+{
+	return glm::dot(metaball.position, plane.normal) - plane.distance;
 }
