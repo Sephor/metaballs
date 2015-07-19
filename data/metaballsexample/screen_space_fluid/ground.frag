@@ -28,5 +28,4 @@ void main()
 	{
 		color *= wColor;
 	}
-	color = texture(groundTexture, coords);
 }
