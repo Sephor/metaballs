@@ -67,16 +67,7 @@ void Grid::removeMetaball(Metaball& metaball)
 
 void Grid::removeMetaball(Metaball& metaball, glm::vec3 coords)
 {
-	std::vector<Metaball*> cell = getMetaballs(coords);
-	//for (auto it = cell.begin(); it != cell.end(); it++)
-	//{
-	//	if ( (*it) == &metaball)
-	//	{
-	//		cell.erase(it);
-	//		return;
-	//	}
-	//}
-
+	std::vector<Metaball*>& cell = getMetaballs(coords);
 	cell.erase(std::remove(cell.begin(), cell.end(), &metaball), cell.end());
 }
 
