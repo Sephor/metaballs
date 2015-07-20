@@ -17,6 +17,7 @@ uniform vec2 viewport;
 uniform float near;
 uniform float far;
 uniform vec3 lightPos;
+uniform vec3 eye;
 
 uniform mat4 viewShadow;
 uniform mat4 projectionShadow;
@@ -141,6 +142,7 @@ void main()
 		vec3 screenSpaceNormal = normalize((projection * vec4(n, 1.0)).xyz);
 		vec4 test = projectionInverted * vec4(viewVector, 1.0);
 		vec3 viewSpaceView = normalize(test.xyz / test.w);
+		vec3 worldPos = (viewInverted * vec4(viewVector2, 1.0)).xyz;
 		float fresnelTerm = fresnel(-viewVector2, n);
 		float lambertTerm = max(0.0, dot(normalize(lightPos - viewVector), n));
 
@@ -160,8 +162,8 @@ void main()
 
 		vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) * thickness * 5.0);
 		refractColor = mix(wColor, refractColor, 0.3 + 0.7 * exp(-thickness));
-		float strange = dot(worldSpaceNormal, 0.5 * (v_sky + normalize(light)));
-		color = mix(refractColor, reflectColor, fresnelTerm);
+		vec3 strange = vec3(0.25, 0.25, 0.0) * dot(worldSpaceNormal, 0.5 * -(v_sky + normalize(eye - lightPos)));
+		color = mix(refractColor, reflectColor, fresnelTerm) + strange;
 	}
 	else
 	{

@@ -24,7 +24,7 @@ void main()
 	float depth = texture(shadowTexture, shadowTexCoord).x;
 	float depth2 = (shadowPos.z / shadowPos.w + 1.0) / 2.0;
 	
-	vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) * thickness);
+	vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) * thickness * 3.5);
 	color = texture(groundTexture, fract(coords * 10.0) * vec2(0.25, 1.0) + vec2(0.75, 0.0));
 	if(depth < depth2 - 0.005)
 	{

@@ -698,6 +698,7 @@ void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
 	m_programFinal->setUniform("near", painter->projectionCapability()->zNear());
 	m_programFinal->setUniform("far", painter->projectionCapability()->zFar());
 	m_programFinal->setUniform("lightPos", m_camera.eye);
+	m_programFinal->setUniform("eye", painter->cameraCapability()->eye());
 
 	m_programFinal->setUniform("viewShadow", m_camera.view);
 	m_programFinal->setUniform("projectionShadow", m_camera.projection);
