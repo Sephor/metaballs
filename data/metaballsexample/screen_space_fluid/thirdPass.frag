@@ -163,8 +163,8 @@ void main()
 
 		vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) * thickness * 5.0);
 		refractColor = mix(wColor, refractColor, 0.3 + 0.7 * exp(-thickness));
-		vec3 strange = sunColor * pow(dot(worldSpaceNormal, 0.5 * -(v_sky + normalize(eye - lightPos))), 2.5);
-		color = mix(refractColor, reflectColor, fresnelTerm) + strange;
+		vec4 strange = vec4(sunColor, 0.0) * pow(dot(worldSpaceNormal, 0.5 * -(v_sky + normalize(eye - lightPos))), 10.0);
+		color = mix(refractColor, reflectColor, fresnelTerm) + max(vec4(0.0), strange);
 	}
 	else
 	{

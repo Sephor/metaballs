@@ -15,7 +15,7 @@ FluidSimulator::FluidSimulator()
 	, m_repulsionLimitFactor(.9f)
 	, m_repulsionFactor(5.f)
 	, m_attractionFactor(1.f)
-	, m_grid(Grid(40, 0.15f, glm::vec3(-1.5f, 0.f, -.5f)))
+	, m_grid(Grid(40, 0.15f, glm::vec3(-3.f, 0.f, -3.f)))
 	, m_metaballCount(10000)
 {
 	m_planes = std::vector<Plane>{};
@@ -23,8 +23,8 @@ FluidSimulator::FluidSimulator()
 
 
 	m_metaballEmitter.period = .01f;
-	m_metaballEmitter.position = glm::vec3(-1.f, 5.f, 0.f);
-	m_metaballEmitter.startVelocity = glm::vec3(1.f, 0.f, 0.f);
+	m_metaballEmitter.position = glm::vec3(0.f, 5.f, 0.f);
+	m_metaballEmitter.startVelocity = glm::vec3(0.f, 0.f, 0.f);
 	m_metaballEmitter.nextEmission = 0;
 	m_metaballEmitter.metaballRadius = .1f;
 	m_metaballEmitter.spread = .5f;
