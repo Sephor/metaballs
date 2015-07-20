@@ -159,7 +159,7 @@ void main()
 		vec4 refractColor = texture(groundTexture, refr2);
 
 		vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) * thickness * 5.0);
-		refractColor = mix(wColor, refractColor, exp(-thickness));
+		refractColor = mix(wColor, refractColor, 0.3 + 0.7 * exp(-thickness));
 		float strange = dot(worldSpaceNormal, 0.5 * (v_sky + normalize(light)));
 		color = mix(refractColor, reflectColor, fresnelTerm);
 	}

@@ -32,6 +32,7 @@ ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
 	, m_timeStep(0.0002f)
 	, m_lightDir(-1.f, -1.f, -1.f, 1.f)
 	, m_blurringScale(2.f)
+	, m_reload(false)
 {
 		
 }
@@ -93,6 +94,12 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 	if (painter->projectionCapability()->hasChanged())
 	{
 		setupShadowmap(painter);
+	}
+
+	if (m_reload)
+	{
+		setupPrograms(painter);
+		m_reload = false;
 	}
 
 	m_metaballs = painter->getMetaballs();
@@ -160,6 +167,16 @@ void ScreenSpaceFluidRenderer::setTimeStep(float value)
 float ScreenSpaceFluidRenderer::getTimeStep() const
 {
 	return m_timeStep;
+}
+
+void ScreenSpaceFluidRenderer::setReload(bool value)
+{
+	m_reload = true;
+}
+
+bool ScreenSpaceFluidRenderer::getReload() const
+{
+	return m_reload;
 }
 
 void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
@@ -240,10 +257,10 @@ void ScreenSpaceFluidRenderer::setupGround()
 	m_vaoGround = new globjects::VertexArray;
 	m_vaoGround->bind();
 	std::vector<glm::vec3> vertices = {
-		glm::vec3(-25.f, -.1f, 25.f),
-		glm::vec3(-25.f, -.1f, -25.f),
-		glm::vec3(25.f, -.1f, 25.f),
-		glm::vec3(25.f, -.1f, -25.f) };
+		glm::vec3(-5.f, -.0f, 5.f),
+		glm::vec3(-5.f, -.0f, -5.f),
+		glm::vec3(5.f, -.0f, 5.f),
+		glm::vec3(5.f, -.0f, -5.f) };
 
 	m_ground = new globjects::Buffer;
 	m_ground->setData(vertices, gl::GL_STATIC_DRAW);
@@ -398,7 +415,7 @@ void ScreenSpaceFluidRenderer::setupShadowmap(MetaballsExample * painter)
 	m_camera.aspectRatio = 1.f;
 	m_camera.zFar = painter->projectionCapability()->zFar();
 	m_camera.zNear = painter->projectionCapability()->zNear();
-	m_camera.eye = glm::vec3(10.f, 6.f, -7.f);
+	m_camera.eye = glm::vec3(10.f, 10.f, -7.f);
 	m_camera.center = glm::vec3(-9.f, -2.f, 8.f);
 	m_camera.fovy = glm::radians(40.f);
 

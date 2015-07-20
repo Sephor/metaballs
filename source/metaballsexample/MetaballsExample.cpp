@@ -133,6 +133,9 @@ void MetaballsExample::setupPropertyGroup()
 	/*addProperty<bool>("Raycasting", this,
 		&MetaballsExample::getRaycasting, &MetaballsExample::setRaycasting); */
 
+	addProperty<bool>("Reload", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getReload, &ScreenSpaceFluidRenderer::setReload);
+
 	addProperty<bool>("ScreenSpaceFluid", this,
 		&MetaballsExample::getSSF, &MetaballsExample::setSSF);
 

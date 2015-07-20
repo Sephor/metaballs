@@ -43,6 +43,9 @@ public:
 	void setTimeStep(float value);
 	float getTimeStep() const;
 
+	void setReload(bool value);
+	bool getReload() const;
+
 private:
 
 	struct Camera
@@ -64,6 +67,7 @@ private:
 	float m_blurringScale;
 	float m_timeStep;
 	bool m_bilateral;
+	bool m_reload;
 	int m_blurFilterSize;
 	unsigned int m_blurringIterations;
 	const glm::vec4 m_lightDir;
