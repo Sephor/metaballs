@@ -29,6 +29,7 @@ in vec3 viewVector;
 out vec4 color;
 
 const vec3 waterColorf = vec3(64 / 255, 164/ 255, 223 / 255);
+const vec3 sunColor = vec3(0.99, 0.72, 0.07);
 
 float lin(float depth)
 {
@@ -162,7 +163,7 @@ void main()
 
 		vec4 wColor = exp(-vec4(0.6, 0.2, 0.05, 3.0) * thickness * 5.0);
 		refractColor = mix(wColor, refractColor, 0.3 + 0.7 * exp(-thickness));
-		vec3 strange = vec3(0.25, 0.25, 0.0) * dot(worldSpaceNormal, 0.5 * -(v_sky + normalize(eye - lightPos)));
+		vec3 strange = sunColor * pow(dot(worldSpaceNormal, 0.5 * -(v_sky + normalize(eye - lightPos))), 2.5);
 		color = mix(refractColor, reflectColor, fresnelTerm) + strange;
 	}
 	else
