@@ -12,10 +12,10 @@ FluidSimulator::FluidSimulator()
 	, m_gen(m_rd())
 	, m_dis(0, 1)
 	, m_twoPi(6.283185f)
-	, m_repulsionLimitFactor(.7f)
+	, m_repulsionLimitFactor(1.f)
 	, m_repulsionFactor(5.f)
 	, m_attractionFactor(1.f)
-	, m_grid(Grid(20, 0.2f, glm::vec3(-1.5f, 0.f, -.5f)))
+	, m_grid(Grid(5, 0.2f, glm::vec3(-1.5f, 0.f, -.5f)))
 	, m_metaballCount(10000)
 {
 	m_planes = std::vector<Plane>{};
@@ -35,7 +35,7 @@ FluidSimulator::FluidSimulator()
 	for (int i = 0; i < m_metaballCount; i++)
 	{
 		Metaball m;
-		m.position = glm::vec3(i * 0.9f, 0.f, 500.f);
+		m.position = glm::vec3(i * 0.1f, 0.f, 5000.f);
 		m.radius = 0.f;
 		m.velocity = glm::vec3(.0f);
 		m.acceleration = glm::vec3(.0f);
@@ -185,7 +185,6 @@ glm::vec3 FluidSimulator::computeInteractions(Metaball& metaball, std::vector<Me
 {
 	
 	glm::vec3 forceSum{0.f};
-	metaball.jump = glm::vec3(0.f);
 	
 	if (metaball.radius == 0.0f)
 	{
@@ -215,21 +214,16 @@ glm::vec3 FluidSimulator::computeInteractions(Metaball& metaball, std::vector<Me
 		}
 		else	//repulsion 
 		{
-			float collisionLimit = repulsionLimit * 0.75f;
-			if ((distance < collisionLimit) && (difference.y < 0.f))
+			float collisionLimit = repulsionLimit;// * 0.8f;
+			if (distance < collisionLimit)
 			{
-				float offset = (collisionLimit - distance);
-				//if (distance == 0.f)
-					//difference = glm::vec3(0.0f, 1.0f, 0.0f);
-				metaball.jump = -glm::normalize(difference) * offset;
+				float offset = (collisionLimit - distance) / 2.0f;
+				metaball.jump += -glm::normalize(difference) * offset;
 				distance = collisionLimit;
 			}
-			float temp = distance / (radiusSum * repulsionLimit);
-			temp = powf(temp, 4.f) * 7.f;
-
-			//float term = distance / (radiusSum * m_repulsionLimitFactor) * sqrtRadiusSum;
-			//forceMagnitude = m_repulsionFactor * (radiusSum - term * term);
-			forceMagnitude = m_repulsionFactor * 1 / temp;
+			//float temp = distance / (radiusSum * repulsionLimit);
+			//temp = powf(temp, 4.f) * 7.f;
+			forceMagnitude = 0;// m_repulsionFactor * 1 / temp;
 		}
 		forceSum -= forceMagnitude / distance * difference;
 	}
@@ -241,6 +235,7 @@ void FluidSimulator::updateRepulsion()
 {
 	for (auto& metaball : m_metaballs)
 	{
+		metaball.jump = glm::vec3(0.f);
 		glm::ivec3 coords(m_grid.cellCoords(metaball));
 		for (int xx = -1; xx <= 1; xx++)
 			for (int yy = -1; yy <= 1; yy++)
@@ -370,6 +365,10 @@ void FluidSimulator::updatePlaneCollision()
 {
 	for (auto& metaball : m_metaballs)
 	{
+		if (metaball.radius == 0.f)
+		{
+			continue;
+		}
 		for (auto& plane : m_planes)
 		{
 			float distance = distanceToPlane(metaball, plane);
@@ -386,8 +385,6 @@ void FluidSimulator::updatePlaneCollision()
 				glm::vec3 parallel = metaball.velocity - orthogonal;
 				metaball.velocity -= orthogonal * (1 - plane.restitution);
 				metaball.velocity -= parallel * plane.friction;
-
-
 			}
 		}
 	}
