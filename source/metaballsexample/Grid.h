@@ -9,6 +9,8 @@ struct Metaball
 	glm::vec3 velocity;
 	glm::vec3 acceleration;
 	glm::vec3 jump;
+	glm::vec3 collisionVelocity;
+	int collisionCount;
 };
 
 class Grid
