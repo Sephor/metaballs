@@ -126,3 +126,33 @@ int Grid::clampToGrid(int value) const
 		return m_size - 1;
 	return value;
 }
+
+float Grid::front()
+{
+	return m_frontBottomLeft.z;
+}
+
+float Grid::back()
+{
+	return m_frontBottomLeft.z + m_cellSize * m_size;
+}
+
+float Grid::left()
+{
+	return m_frontBottomLeft.x;
+}
+
+float Grid::right()
+{
+	return m_frontBottomLeft.x + m_cellSize * m_size;
+}
+
+float Grid::bottom()
+{
+	return m_frontBottomLeft.y;
+}
+
+float Grid::top()
+{
+	return m_frontBottomLeft.y + m_cellSize * m_size;
+}

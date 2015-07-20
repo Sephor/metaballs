@@ -8,6 +8,7 @@ struct Metaball
 	glm::vec3 position;
 	glm::vec3 velocity;
 	glm::vec3 acceleration;
+	glm::vec3 jump;
 };
 
 class Grid
@@ -32,6 +33,14 @@ public:
 
 	bool isInGrid(glm::ivec3 gridCoords) const;
 
+
+	//planes 
+	float front();
+	float back();
+	float left();
+	float right();
+	float top();
+	float bottom();
 private:
 	//index = size * size * x + size * y + z 
 	std::vector <std::vector<Metaball*> > m_data;
@@ -45,4 +54,5 @@ private:
 	//helper functions
 	int toIndex(glm::ivec3 gridCoords) const;
 	int clampToGrid(int value) const;
+
 };
