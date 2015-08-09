@@ -50,21 +50,10 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 	setupGround();
 	setupShadowmap(painter);
 
-	/*for (int nHalf = 0; nHalf < 30; ++nHalf){
-		m_binomOffset.push_back(static_cast<int>(m_binomCoeff.size()));
-		for (int k = nHalf; k >= 0; --k){
-			double num = 1.0;
-			for (int i = 0; i < 2 * nHalf - k; i++)
-				num = 0.5*num*(2 * nHalf - i) / (i + 1);
-			for (int i = 0; i < k; i++)
-				num /= 2;
-			m_binomCoeff.push_back(float(num));
-		}
-	} */
 	for (int i = 29; i >= 0; --i)
 	{
 		double num = 1.0;
-		for (int i2 = 0; i < 2 * 29 - i; ++i2)
+		for (int i2 = 0; i2 < 2 * 29 - i; ++i2)
 		{
 			num = 0.5 * num * (2.0 * 29 - i2) / (i2 + 1);
 		}
