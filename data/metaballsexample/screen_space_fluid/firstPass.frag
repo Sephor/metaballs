@@ -8,8 +8,6 @@ in vec2 textcoord;
 in vec3 viewSpacePos;
 in float metaRadius;
 
-vec3 normal;
-
 void main()
 {
     //calculate the coordinate on the plane through the texture coordinates

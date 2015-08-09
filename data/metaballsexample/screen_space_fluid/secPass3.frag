@@ -6,7 +6,6 @@ uniform vec2 viewport;
 uniform float binomCoeff[30];
 
 in vec2 textCoord;
-in vec3 v_sky;
 
 float calcDepth(float originDepth, ivec2 uv)
 {

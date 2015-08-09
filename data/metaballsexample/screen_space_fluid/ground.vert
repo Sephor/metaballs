@@ -13,7 +13,7 @@ out vec3 worldPos;
 out vec4 shadowPos;
 out vec2 coords;
 
-void main() 
+void main()
 {
 	worldPos = in_vertex;
 	shadowPos =	projectionShadow * viewShadow * vec4(in_vertex, 1.0);

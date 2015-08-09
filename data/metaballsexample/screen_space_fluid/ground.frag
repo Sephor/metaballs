@@ -1,15 +1,9 @@
 #version 330 core
 
-uniform mat4 viewInverted;
-uniform mat4 projectionInverted;
-uniform mat4 viewShadow;
-uniform mat4 projectionShadow;
-
 uniform sampler2D shadowTexture;
 uniform sampler2D thicknessTexture;
 uniform sampler2D groundTexture;
 
-in vec3 worldPos;
 in vec4 shadowPos;
 in vec2 coords;
 

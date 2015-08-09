@@ -7,7 +7,7 @@ in vec2 in_vertex;
 
 out vec3 v_sky;
 
-void main() 
+void main()
 {
     v_sky = (projectionInverted * vec4(in_vertex, 1.0, 1.0) * view).xyz;
 	gl_Position = vec4(in_vertex, 1.0, 1.0);
