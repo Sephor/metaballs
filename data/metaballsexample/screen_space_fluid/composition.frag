@@ -4,23 +4,17 @@
 uniform sampler2D depthTexture;
 uniform sampler2D thicknessTexture;
 uniform samplerCube skybox;
-uniform sampler2D shadowTexture;
 uniform sampler2D groundTexture;
 uniform sampler2D groundDepthTexture;
-uniform sampler2D shadowThicknessTexture;
 
 uniform mat4 projection;
 uniform mat4 view;
-uniform mat4 viewInverted;
 uniform mat4 projectionInverted;
 uniform vec2 viewport;
 uniform float near;
 uniform float far;
 uniform vec3 lightPos;
 uniform vec3 eye;
-
-uniform mat4 viewShadow;
-uniform mat4 projectionShadow;
 
 in vec2 textCoord;
 in vec3 v_sky;
