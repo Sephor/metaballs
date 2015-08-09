@@ -1,5 +1,8 @@
 #version 330 core
 
+//draw circles which very roughly estimate the thickness of a metaball.
+//This doesn't need to be precice because the differences are very minor
+
 in vec2 textcoord;
 in float metaballRadius;
 

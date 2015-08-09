@@ -1,6 +1,7 @@
 #version 330
 
-//uniform sampler2D colorTexture;
+//smooth the depthTexture with mean curvature flow
+
 uniform sampler2D depthTexture;
 uniform samplerCube skybox;
 uniform mat4 view;
@@ -8,7 +9,6 @@ uniform mat4 projectionInverted;
 uniform mat4 viewInverted;
 uniform float maxDepth;
 uniform vec4 light_dir;
-uniform bool blur;
 uniform mat4 projection;
 uniform float timeStep;
 
@@ -81,13 +81,14 @@ vec3 meanCurvature(vec2 pos) {
 
 void main()
 {
+	//grab the depth from the depthTexture
 	float tempDepth = texture(depthTexture, textCoord).x;
+
+	//only smooth the depth if it's not the far plane
 	if(tempDepth == 1.0)
 		gl_FragDepth = 1.0;
 	else
 	{
-		const float dt = 0.0002;
-		
 		vec3 dxyz = meanCurvature(textCoord);
 		gl_FragDepth = tempDepth + dxyz.z * timeStep * (1.0 + dxyz.x * dxyz.x + dxyz.y * dxyz.y);
 	}
