@@ -78,12 +78,9 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("Simulate", &m_fluidSimulator,
 		&FluidSimulator::getIsRunning, &FluidSimulator::setIsRunning);
 
-	addProperty<bool>("Bilateral", &m_SSFRenderer,
+	//Mean Curvature Flow is default
+	addProperty<bool>("useBilateral", &m_SSFRenderer,
 		&ScreenSpaceFluidRenderer::getBilateral, &ScreenSpaceFluidRenderer::setBilateral);
-
-	addProperty<bool>("MeanCurvatureFlow", &m_SSFRenderer,
-		&ScreenSpaceFluidRenderer::getCurvatureFlow, &ScreenSpaceFluidRenderer::setCurvatureFlow);
-
 	
 	auto filterGroup = addGroup("FilterOptions");
 

@@ -125,16 +125,6 @@ bool ScreenSpaceFluidRenderer::getBilateral() const
 	return m_bilateral;
 }
 
-void ScreenSpaceFluidRenderer::setCurvatureFlow(bool value)
-{
-	m_bilateral = !value;
-}
-
-bool ScreenSpaceFluidRenderer::getCurvatureFlow() const
-{
-	return !m_bilateral;
-}
-
 void ScreenSpaceFluidRenderer::setBlurringScale(float value)
 {
 	m_blurringScale = value;
@@ -414,8 +404,6 @@ void ScreenSpaceFluidRenderer::drawThickness(MetaballsExample * painter)
 	m_thicknessProgram->use();
 	m_thicknessProgram->setUniform("view", painter->cameraCapability()->view());
 	m_thicknessProgram->setUniform("projection", painter->projectionCapability()->projection());
-	m_thicknessProgram->setUniform("near", painter->projectionCapability()->zNear());
-	m_thicknessProgram->setUniform("far", painter->projectionCapability()->zFar());
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 
@@ -436,9 +424,6 @@ void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 	m_program->use();
 	m_program->setUniform("view", painter->cameraCapability()->view());
 	m_program->setUniform("projection", painter->projectionCapability()->projection());
-	m_program->setUniform("light_dir", m_lightDir);
-	m_program->setUniform("near", painter->projectionCapability()->zNear());
-	m_program->setUniform("far", painter->projectionCapability()->zFar());
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 
@@ -486,8 +471,6 @@ void ScreenSpaceFluidRenderer::drawGround(MetaballsExample * painter)
 
 	m_groundProgram->setUniform("view", painter->cameraCapability()->view());
 	m_groundProgram->setUniform("projection", painter->projectionCapability()->projection());
-	m_groundProgram->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
-	m_groundProgram->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 	m_groundProgram->setUniform("viewShadow", m_camera.view);
 	m_groundProgram->setUniform("projectionShadow", m_camera.projection);
 
@@ -502,14 +485,7 @@ void ScreenSpaceFluidRenderer::drawGround(MetaballsExample * painter)
 
 void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 {
-	glm::vec2 fov(0.f);
-	fov.y = painter->projectionCapability()->fovy();
-	fov.x = fov.y * painter->projectionCapability()->aspectRatio();
 	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
-	glm::vec2 focal(0.f);
-	focal.x = sinf(fov.x / 2.f) / tanf(fov.x / 2.f);
-	focal.y = sinf(fov.y / 2.f) / tanf(fov.y / 2.f);
-	glm::vec2 focal2(-painter->projectionCapability()->projection()[0][0], -painter->projectionCapability()->projection()[1][1]);
 
 	gl::glViewport(0, 0, static_cast<gl::GLsizei>(painter->viewportCapability()->width() / m_blurringScale), static_cast<gl::GLsizei>(painter->viewportCapability()->height() / m_blurringScale));
 
@@ -521,25 +497,14 @@ void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 	m_curvatureFlowProgram->use();
 	m_screenAlignedQuadVAO->bind();
 
-	//m_colorTexture1->bindActive(gl::GL_TEXTURE0);
-	//m_curvatureFlowProgram->setUniform(m_curvatureFlowProgram->getUniformLocation("colorTexture"), 0);
 
 	m_metaballTexture->bindActive(gl::GL_TEXTURE0);
 	m_curvatureFlowProgram->setUniform(m_curvatureFlowProgram->getUniformLocation("depthTexture"), 0);
 
-	m_skybox->bindActive(gl::GL_TEXTURE2);
-	m_curvatureFlowProgram->setUniform(m_curvatureFlowProgram->getUniformLocation("skybox"), 1);
-
-	m_curvatureFlowProgram->setUniform("maxDepth", 1.0f);
-	m_curvatureFlowProgram->setUniform("light_dir", m_lightDir);
 	m_curvatureFlowProgram->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
-	m_curvatureFlowProgram->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
 	m_curvatureFlowProgram->setUniform("view", painter->cameraCapability()->view());
 	m_curvatureFlowProgram->setUniform("projection", painter->projectionCapability()->projection());
 	m_curvatureFlowProgram->setUniform("viewport", viewport);
-	m_curvatureFlowProgram->setUniform("fov", fov);
-	m_curvatureFlowProgram->setUniform("focal", focal);
-	m_curvatureFlowProgram->setUniform("focal2", focal2);
 	m_curvatureFlowProgram->setUniform("timeStep", m_timeStep);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
@@ -627,9 +592,6 @@ void ScreenSpaceFluidRenderer::compose(MetaballsExample * painter)
 	m_composingProgram->use();
 	m_screenAlignedQuadVAO->bind();
 
-	//m_colorTexture2->bindActive(gl::GL_TEXTURE0);
-	//m_composingProgram->setUniform(m_composingProgram->getUniformLocation("colorTexture"), 0);
-
 	if (!m_bilateral)
 		m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE0);
 	else
@@ -642,29 +604,19 @@ void ScreenSpaceFluidRenderer::compose(MetaballsExample * painter)
 	m_skybox->bindActive(gl::GL_TEXTURE2);
 	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("skybox"), 2);
 
-	m_shadowTexture->bindActive(gl::GL_TEXTURE3);
-	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("shadowTexture"), 3);
+	m_groundColorTexture->bindActive(gl::GL_TEXTURE3);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("groundTexture"), 3);
 
-	m_groundColorTexture->bindActive(gl::GL_TEXTURE4);
-	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("groundTexture"), 4);
-
-	m_groundDepthTexture->bindActive(gl::GL_TEXTURE5);
-	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("groundDepthTexture"), 5);
-
-	m_shadowThicknessTexture->bindActive(gl::GL_TEXTURE6);
-	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("shadowThicknessTexture"), 6);
+	m_groundDepthTexture->bindActive(gl::GL_TEXTURE4);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("groundDepthTexture"), 4);
 
 	m_composingProgram->setUniform("view", painter->cameraCapability()->view());
 	m_composingProgram->setUniform("projection", painter->projectionCapability()->projection());
 	m_composingProgram->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
-	m_composingProgram->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
 	m_composingProgram->setUniform("near", painter->projectionCapability()->zNear());
 	m_composingProgram->setUniform("far", painter->projectionCapability()->zFar());
 	m_composingProgram->setUniform("lightPos", m_camera.eye);
 	m_composingProgram->setUniform("eye", painter->cameraCapability()->eye());
-
-	m_composingProgram->setUniform("viewShadow", m_camera.view);
-	m_composingProgram->setUniform("projectionShadow", m_camera.projection);
 
 	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
 	m_composingProgram->setUniform("viewport", viewport);
@@ -689,9 +641,6 @@ void ScreenSpaceFluidRenderer::drawShadowmap(MetaballsExample * painter)
 	m_program->use();
 	m_program->setUniform("view", m_camera.view);
 	m_program->setUniform("projection", m_camera.projection);
-	m_program->setUniform("light_dir", m_lightDir);
-	m_program->setUniform("near", m_camera.zNear);
-	m_program->setUniform("far", m_camera.zFar);
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 
@@ -708,8 +657,6 @@ void ScreenSpaceFluidRenderer::drawShadowmap(MetaballsExample * painter)
 	m_thicknessProgram->use();
 	m_thicknessProgram->setUniform("view", m_camera.view);
 	m_thicknessProgram->setUniform("projection", m_camera.projection);
-	m_thicknessProgram->setUniform("near", painter->projectionCapability()->zNear());
-	m_thicknessProgram->setUniform("far", painter->projectionCapability()->zFar());
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 

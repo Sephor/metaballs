@@ -50,9 +50,6 @@ public:
 	void setBilateral(bool value);
 	bool getBilateral() const;
 
-	void setCurvatureFlow(bool value);
-	bool getCurvatureFlow() const;
-
 	void setBlurringScale(float value);
 	float getBlurringScale() const;
 
