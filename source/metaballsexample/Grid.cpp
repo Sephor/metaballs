@@ -16,7 +16,6 @@ Grid::Grid(int size, float cellSize, glm::vec3 origin)
 
 Grid::~Grid(){}
 
-
 std::vector<Metaball*>& Grid::getMetaballs(glm::ivec3 gridCoords)
 {
 	return m_data[toIndex(gridCoords)];
@@ -54,7 +53,7 @@ void Grid::addMetaball(Metaball& metaball)
 	addMetaball(metaball, coords);
 }
 
-void Grid::addMetaball(Metaball& metaball, glm::vec3 coords)
+void Grid::addMetaball(Metaball& metaball, glm::ivec3 coords)
 {
 	m_data[toIndex(coords)].push_back(&metaball);
 }
@@ -65,7 +64,7 @@ void Grid::removeMetaball(Metaball& metaball)
 	removeMetaball(metaball, coords);
 }
 
-void Grid::removeMetaball(Metaball& metaball, glm::vec3 coords)
+void Grid::removeMetaball(Metaball& metaball, glm::ivec3 coords)
 {
 	std::vector<Metaball*>& cell = getMetaballs(coords);
 	cell.erase(std::remove(cell.begin(), cell.end(), &metaball), cell.end());

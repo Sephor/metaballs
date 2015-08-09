@@ -44,10 +44,6 @@ FluidSimulator::FluidSimulator()
 		m_metaballs.push_back(m);
 	}
 
-	//for (int x = 0; x < 10; x++)
-	//	for (int y = 0; y < 10; y++)
-	//		for (int z = 0; z < 8; z++)
-	//			m_metaballs[x * 80 + 8 * y + z].position = glm::vec3(x * 0.5f, y * 0.5f, z * 0.5f);
 	m_lastTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -313,9 +309,7 @@ void FluidSimulator::emitMetaball()
 	m_metaballs[m_metaballSelector].velocity = m_metaballEmitter.startVelocity + velOffset;
 	m_metaballs[m_metaballSelector].radius = m_metaballEmitter.metaballRadius;
 	
-	//GRID
 	m_grid.updateMetaball(m_metaballs[m_metaballSelector], m_metaballEmitter.position + posOffset);
-	//!GRID
 
 	//increase the counter to the next metaball
 	m_metaballSelector = (m_metaballSelector + 1) % m_metaballs.size();
@@ -337,36 +331,9 @@ void FluidSimulator::update()
 		emitMetaball();
 	}
 
-	//BENCHMARKING
-	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> tZero;
-	tZero = std::chrono::high_resolution_clock::now();
-
 	updateRepulsion();
-
-	//BENCHMARKING
-	int updateRepulsionTime = (int)std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - tZero).count();
-	tZero = std::chrono::high_resolution_clock::now();
-
 	updatePositions(elapsedTime);
 	updatePlaneCollision();
-
-
-	//BENCHMARKING
-	int updatePositionTime = (int)std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - tZero).count();
-
-	//BENCHMARKING
-	int totalTime = (int) std::chrono::duration<float, std::ratio<1, 1000>>(std::chrono::high_resolution_clock::now() - m_lastTime).count();
-
-	//DEBUG
-	static int frame;
-	if (++frame % 30 == 0) {
-		std::cout << "fps: " << (int)(1000.f / totalTime)
-			<< " T: " << totalTime
-			<< " Rep: " << updateRepulsionTime
-			<< " Pos: " << updatePositionTime
-			<< std::endl;
-	};
-	//!DEBUG
 }
 
 bool FluidSimulator::doesCollide(const Metaball & metaball, const Plane & plane, float deltaTime)

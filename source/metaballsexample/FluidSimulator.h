@@ -16,6 +16,7 @@ public:
 	FluidSimulator();
 	~FluidSimulator();
 
+protected:
 	struct Plane
 	{
 		glm::vec3 normal;
@@ -23,6 +24,7 @@ public:
 		float distance;
 		float restitution;
 	};
+
 	struct Emitter
 	{
 		glm::vec3 position;
@@ -34,12 +36,7 @@ public:
 		float spray;
 	};
 
-	const std::vector<glm::vec4>& getMetaballs();
-	void update();
-	void startSimulation();
-	void stopSimulation();
-	bool doesCollide(const Metaball & metaball, const Plane & plane, float deltaTime);
-	float collisionTime(const Metaball & metaball, const Plane & plane);
+public:
 	bool getIsRunning() const;
 	void setIsRunning(bool value);
 	float getAttractionFactor() const;
@@ -55,20 +52,18 @@ public:
 	float getEmitterPeriod() const;
 	void setEmitterPeriod(float value);
 
-	void updateRepulsion();
-	void updatePlaneCollision();
+	void startSimulation();
+	void stopSimulation();
+	void update();
 
-	glm::vec3 computeInteractions(Metaball& metaball, std::vector<Metaball*>& neighbours);
-	void updatePositions(float elapsedTime);
-	void emitMetaball();
+	const std::vector<glm::vec4>& getMetaballs();
 
-	float distanceToPlane(Metaball& metaball, Plane& plane);
-	void initializePlanes();
-
-private:
+protected:
+	//Member
 	const glm::vec3 m_gravConstant;
 	const float m_twoPi;
 	const size_t m_metaballCount;
+
 	float m_repulsionLimitFactor;
 	float m_repulsionFactor;
 	float m_attractionFactor;
@@ -81,9 +76,23 @@ private:
 	Grid m_grid;
 	std::vector<Plane> m_planes;
 
+	//random generator
 	std::random_device m_rd;
 	std::mt19937 m_gen;
 	std::uniform_real_distribution<float> m_dis;
 
 	std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> m_lastTime;
+
+	//Functions
+	void initializePlanes();
+
+	void emitMetaball();
+	void updateRepulsion();
+	void updatePlaneCollision();
+	void updatePositions(float elapsedTime);
+	glm::vec3 computeInteractions(Metaball& metaball, std::vector<Metaball*>& neighbours);
+
+	bool doesCollide(const Metaball & metaball, const Plane & plane, float deltaTime);
+	float collisionTime(const Metaball & metaball, const Plane & plane);
+	float distanceToPlane(Metaball& metaball, Plane& plane);
 };
