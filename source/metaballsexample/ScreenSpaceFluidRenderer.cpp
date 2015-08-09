@@ -26,13 +26,11 @@
 
 
 ScreenSpaceFluidRenderer::ScreenSpaceFluidRenderer()
-	: m_blurFilterSize{ 0 }
-	, m_blurringIterations(100)
+	: m_blurringIterations(100)
 	, m_bilateral(false)
 	, m_timeStep(0.0002f)
 	, m_lightDir(-1.f, -1.f, -1.f, 1.f)
 	, m_blurringScale(2.f)
-	, m_reload(false)
 {
 		
 }
@@ -91,16 +89,10 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 		m_groundColorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 	}
 
-	if (m_reload)
-	{
-		setupPrograms(painter);
-		m_reload = false;
-	}
-
 	m_metaballs = painter->getMetaballs();
 	m_vertices->setSubData(m_metaballs);
 
-	drawThicknessPass(painter);
+	drawThickness(painter);
 	drawMetaballs(painter);
 	drawShadowmap(painter);
 	drawGround(painter);
@@ -108,19 +100,9 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 		curvatureFlowBlur(painter);
 	else
 		bilateralBlur(painter);
-	drawThirdPass(painter);
+	compose(painter);
 
-	return m_finalFBO;
-}
-
-void ScreenSpaceFluidRenderer::setBlurFilterSize(int size)
-{
-	m_blurFilterSize = size;
-}
-
-int ScreenSpaceFluidRenderer::getBlurFilterSize() const 
-{
-	return m_blurFilterSize;
+	return m_composingFBO;
 }
 
 void ScreenSpaceFluidRenderer::setBlurringIterations(unsigned int value)
@@ -174,22 +156,12 @@ float ScreenSpaceFluidRenderer::getTimeStep() const
 	return m_timeStep;
 }
 
-void ScreenSpaceFluidRenderer::setReload(bool value)
-{
-	m_reload = true;
-}
-
-bool ScreenSpaceFluidRenderer::getReload() const
-{
-	return m_reload;
-}
-
 void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 {
 	m_metaballFBO = new globjects::Framebuffer;
 	m_blurringFBO[0] = new globjects::Framebuffer;
 	m_blurringFBO[1] = new globjects::Framebuffer;
-	m_finalFBO = new globjects::Framebuffer;
+	m_composingFBO = new globjects::Framebuffer;
 	m_thicknessFBO = new globjects::Framebuffer;
 	m_shadowFBO = new globjects::Framebuffer;
 	m_shadowThicknessFBO = new globjects::Framebuffer;
@@ -223,11 +195,11 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 	//third
 	m_colorTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
 	m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
-	m_finalFBO->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture, 0);
+	m_composingFBO->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture, 0);
 
 	m_depthTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
 	m_depthTexture->image2D(0, gl::GL_DEPTH_COMPONENT, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_DEPTH_COMPONENT, gl::GL_FLOAT, nullptr);
-	m_finalFBO->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
+	m_composingFBO->attachTexture(gl::GL_DEPTH_ATTACHMENT, m_depthTexture, 0);
 
 	//thickness
 	m_thicknessTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
@@ -259,8 +231,8 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 
 void ScreenSpaceFluidRenderer::setupGround()
 {
-	m_vaoGround = new globjects::VertexArray;
-	m_vaoGround->bind();
+	m_groundVAO = new globjects::VertexArray;
+	m_groundVAO->bind();
 	std::vector<glm::vec3> vertices = {
 		glm::vec3(-5.f, -.0f, 5.f),
 		glm::vec3(-5.f, -.0f, -5.f),
@@ -280,19 +252,19 @@ void ScreenSpaceFluidRenderer::setupGround()
 
 	coords->setData(texCoords, gl::GL_STATIC_DRAW);
 
-	auto binding = m_vaoGround->binding(0);
+	auto binding = m_groundVAO->binding(0);
 	binding->setAttribute(0);
 	binding->setBuffer(m_ground, 0, 3 * sizeof(float));
 	binding->setFormat(3, gl::GL_FLOAT);
-	m_vaoGround->enable(0);
+	m_groundVAO->enable(0);
 
-	auto binding2 = m_vaoGround->binding(1);
-	binding2->setAttribute(1);
-	binding2->setBuffer(coords, 0, 2 * sizeof(float));
-	binding2->setFormat(2, gl::GL_FLOAT);
-	m_vaoGround->enable(1);
+	binding = m_groundVAO->binding(1);
+	binding->setAttribute(1);
+	binding->setBuffer(coords, 0, 2 * sizeof(float));
+	binding->setFormat(2, gl::GL_FLOAT);
+	m_groundVAO->enable(1);
 
-	m_vaoGround->unbind();
+	m_groundVAO->unbind();
 
 	gloperate_qt::QtTextureLoader loader;
 	m_groundTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
@@ -301,15 +273,15 @@ void ScreenSpaceFluidRenderer::setupGround()
 
 void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
 {
-	m_programThickness = new globjects::Program;
-	m_programThickness->attach(
+	m_thicknessProgram = new globjects::Program;
+	m_thicknessProgram->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/thicknessPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/thicknessPass.frag"),
 		globjects::Shader::fromFile(gl::GL_GEOMETRY_SHADER, "data/metaballsexample/screen_space_fluid/thicknessPass.geom")
 	);
 
-	m_programGround = new globjects::Program;
-	m_programGround->attach(
+	m_groundProgram = new globjects::Program;
+	m_groundProgram->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/ground.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/ground.frag"));
 
@@ -320,32 +292,32 @@ void ScreenSpaceFluidRenderer::setupPrograms(MetaballsExample * painter)
 		globjects::Shader::fromFile(gl::GL_GEOMETRY_SHADER, "data/metaballsexample/screen_space_fluid/firstPass.geom")
 	);
 
-	m_programSmoothing = new globjects::Program;
-	m_programSmoothing->attach(
+	m_curvatureFlowProgram = new globjects::Program;
+	m_curvatureFlowProgram->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/secPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/secPass.frag")
 	);
 
-	m_programSmoothing2 = new globjects::Program;
-	m_programSmoothing2->attach(
+	m_verticalBilateralProgram = new globjects::Program;
+	m_verticalBilateralProgram->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/secPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/secPass2.frag")
 		);
 
-	m_programSmoothing3 = new globjects::Program;
-	m_programSmoothing3->attach(
+	m_horizontalBilateralProgram = new globjects::Program;
+	m_horizontalBilateralProgram->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/secPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/secPass3.frag")
 		);
 
-	m_programFinal = new globjects::Program;
-	m_programFinal->attach(
+	m_composingProgram = new globjects::Program;
+	m_composingProgram->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/thirdPass.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/thirdPass.frag")
 	);
 
-	m_programBackground = new globjects::Program;
-	m_programBackground->attach(
+	m_backgroundProgram = new globjects::Program;
+	m_backgroundProgram->attach(
 		globjects::Shader::fromFile(gl::GL_VERTEX_SHADER, "data/metaballsexample/screen_space_fluid/background.vert"),
 		globjects::Shader::fromFile(gl::GL_FRAGMENT_SHADER, "data/metaballsexample/screen_space_fluid/background.frag")
 	);
@@ -388,31 +360,31 @@ void ScreenSpaceFluidRenderer::setupMetaballs(MetaballsExample * painter)
 	m_vertices = new globjects::Buffer;
 	m_vertices->setData(m_metaballs, gl::GL_DYNAMIC_DRAW);
 
-	m_vao = new globjects::VertexArray;
-	auto binding = m_vao->binding(0);
+	m_VAO = new globjects::VertexArray;
+	auto binding = m_VAO->binding(0);
 	binding->setAttribute(0);
 	binding->setBuffer(m_vertices, 0, 4 * sizeof(float));
 	binding->setFormat(4, gl::GL_FLOAT);
-	m_vao->enable(0);
+	m_VAO->enable(0);
 }
 
 void ScreenSpaceFluidRenderer::setupScreenAlignedQuad(MetaballsExample * painter)
 {
-	m_verticesPlan = new globjects::Buffer;
-	m_verticesPlan->setData(std::vector<float>{
+	m_screenAlignedQuad = new globjects::Buffer;
+	m_screenAlignedQuad->setData(std::vector<float>{
 		-1.f,  1.f,
 		-1.f, -1.f,
 		 1.f,  1.f,
 		 1.f, -1.f
 	}, gl::GL_STATIC_DRAW);
 
-	m_vaoPlan = new globjects::VertexArray;
-	auto binding = m_vaoPlan->binding(0);
+	m_screenAlignedQuadVAO = new globjects::VertexArray;
+	auto binding = m_screenAlignedQuadVAO->binding(0);
 	binding->setAttribute(0);
-	binding->setBuffer(m_verticesPlan, 0, 2 * sizeof(float));
+	binding->setBuffer(m_screenAlignedQuad, 0, 2 * sizeof(float));
 	binding->setFormat(2, gl::GL_FLOAT);
 
-	m_vaoPlan->enable(0);
+	m_screenAlignedQuadVAO->enable(0);
 }
 
 void ScreenSpaceFluidRenderer::setupShadowmap(MetaballsExample * painter)
@@ -430,9 +402,9 @@ void ScreenSpaceFluidRenderer::setupShadowmap(MetaballsExample * painter)
 	m_camera.viewInverted = glm::inverse(m_camera.view);
 }
 
-void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
+void ScreenSpaceFluidRenderer::drawThickness(MetaballsExample * painter)
 {
-	m_vao->bind();
+	m_VAO->bind();
 
 	m_thicknessFBO->bind();
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT);
@@ -440,22 +412,22 @@ void ScreenSpaceFluidRenderer::drawThicknessPass(MetaballsExample * painter)
 	gl::glEnable(gl::GL_BLEND);
 	gl::glBlendFunc(gl::GL_ONE, gl::GL_ONE);
 
-	m_programThickness->use();
-	m_programThickness->setUniform("view", painter->cameraCapability()->view());
-	m_programThickness->setUniform("projection", painter->projectionCapability()->projection());
-	m_programThickness->setUniform("near", painter->projectionCapability()->zNear());
-	m_programThickness->setUniform("far", painter->projectionCapability()->zFar());
+	m_thicknessProgram->use();
+	m_thicknessProgram->setUniform("view", painter->cameraCapability()->view());
+	m_thicknessProgram->setUniform("projection", painter->projectionCapability()->projection());
+	m_thicknessProgram->setUniform("near", painter->projectionCapability()->zNear());
+	m_thicknessProgram->setUniform("far", painter->projectionCapability()->zFar());
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 
-	m_vao->unbind();
-	m_programThickness->release();
+	m_VAO->unbind();
+	m_thicknessProgram->release();
 	m_thicknessFBO->unbind();
 }
 
 void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 {
-	m_vao->bind();
+	m_VAO->bind();
 
 	m_metaballFBO->bind();
 	gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
@@ -471,7 +443,7 @@ void ScreenSpaceFluidRenderer::drawMetaballs(MetaballsExample * painter)
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 
-	m_vao->unbind();
+	m_VAO->unbind();
 	m_program->release();
 	gl::glDisable(gl::GL_DEPTH_TEST);
 	m_metaballFBO->unbind();
@@ -484,46 +456,46 @@ void ScreenSpaceFluidRenderer::drawGround(MetaballsExample * painter)
 	gl::glDepthFunc(gl::GL_LEQUAL);
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 
-	m_vaoPlan->bind();
-	m_programBackground->use();
+	m_screenAlignedQuadVAO->bind();
+	m_backgroundProgram->use();
 
 	m_skybox->bindActive(gl::GL_TEXTURE0);
-	m_programBackground->setUniform(m_programBackground->getUniformLocation("skybox"), 0);
+	m_backgroundProgram->setUniform(m_backgroundProgram->getUniformLocation("skybox"), 0);
 
-	m_programBackground->setUniform("view", painter->cameraCapability()->view());
-	m_programBackground->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+	m_backgroundProgram->setUniform("view", painter->cameraCapability()->view());
+	m_backgroundProgram->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-	m_vaoPlan->unbind();
-	m_programBackground->release();
+	m_screenAlignedQuadVAO->unbind();
+	m_backgroundProgram->release();
 
 	gl::glDepthFunc(gl::GL_ALWAYS);
 
-	m_vaoGround->bind();
+	m_groundVAO->bind();
 
-	m_programGround->use();
+	m_groundProgram->use();
 
 	m_shadowTexture->bindActive(gl::GL_TEXTURE0);
-	m_programGround->setUniform(m_programGround->getUniformLocation("shadowTexture"), 0);
+	m_groundProgram->setUniform(m_groundProgram->getUniformLocation("shadowTexture"), 0);
 
 	m_shadowThicknessTexture->bindActive(gl::GL_TEXTURE1);
-	m_programGround->setUniform(m_programGround->getUniformLocation("thicknessTexture"), 1);
+	m_groundProgram->setUniform(m_groundProgram->getUniformLocation("thicknessTexture"), 1);
 
 	m_groundTexture->bindActive(gl::GL_TEXTURE2);
-	m_programGround->setUniform(m_programGround->getUniformLocation("groundTexture"), 2);
+	m_groundProgram->setUniform(m_groundProgram->getUniformLocation("groundTexture"), 2);
 
-	m_programGround->setUniform("view", painter->cameraCapability()->view());
-	m_programGround->setUniform("projection", painter->projectionCapability()->projection());
-	m_programGround->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
-	m_programGround->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
-	m_programGround->setUniform("viewShadow", m_camera.view);
-	m_programGround->setUniform("projectionShadow", m_camera.projection);
+	m_groundProgram->setUniform("view", painter->cameraCapability()->view());
+	m_groundProgram->setUniform("projection", painter->projectionCapability()->projection());
+	m_groundProgram->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
+	m_groundProgram->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+	m_groundProgram->setUniform("viewShadow", m_camera.view);
+	m_groundProgram->setUniform("projectionShadow", m_camera.projection);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-	m_programGround->release();
-	m_vaoGround->unbind();
+	m_groundProgram->release();
+	m_groundVAO->unbind();
 	m_groundFBO->unbind();
 
 	gl::glDisable(gl::GL_DEPTH_TEST);
@@ -547,29 +519,29 @@ void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LEQUAL);
 
-	m_programSmoothing->use();
-	m_vaoPlan->bind();
+	m_curvatureFlowProgram->use();
+	m_screenAlignedQuadVAO->bind();
 
 	//m_colorTexture1->bindActive(gl::GL_TEXTURE0);
-	//m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("colorTexture"), 0);
+	//m_curvatureFlowProgram->setUniform(m_curvatureFlowProgram->getUniformLocation("colorTexture"), 0);
 
 	m_metaballTexture->bindActive(gl::GL_TEXTURE0);
-	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("depthTexture"), 0);
+	m_curvatureFlowProgram->setUniform(m_curvatureFlowProgram->getUniformLocation("depthTexture"), 0);
 
 	m_skybox->bindActive(gl::GL_TEXTURE2);
-	m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("skybox"), 1);
+	m_curvatureFlowProgram->setUniform(m_curvatureFlowProgram->getUniformLocation("skybox"), 1);
 
-	m_programSmoothing->setUniform("maxDepth", 1.0f);
-	m_programSmoothing->setUniform("light_dir", m_lightDir);
-	m_programSmoothing->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
-	m_programSmoothing->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
-	m_programSmoothing->setUniform("view", painter->cameraCapability()->view());
-	m_programSmoothing->setUniform("projection", painter->projectionCapability()->projection());
-	m_programSmoothing->setUniform("viewport", viewport);
-	m_programSmoothing->setUniform("fov", fov);
-	m_programSmoothing->setUniform("focal", focal);
-	m_programSmoothing->setUniform("focal2", focal2);
-	m_programSmoothing->setUniform("timeStep", m_timeStep);
+	m_curvatureFlowProgram->setUniform("maxDepth", 1.0f);
+	m_curvatureFlowProgram->setUniform("light_dir", m_lightDir);
+	m_curvatureFlowProgram->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+	m_curvatureFlowProgram->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
+	m_curvatureFlowProgram->setUniform("view", painter->cameraCapability()->view());
+	m_curvatureFlowProgram->setUniform("projection", painter->projectionCapability()->projection());
+	m_curvatureFlowProgram->setUniform("viewport", viewport);
+	m_curvatureFlowProgram->setUniform("fov", fov);
+	m_curvatureFlowProgram->setUniform("focal", focal);
+	m_curvatureFlowProgram->setUniform("focal2", focal2);
+	m_curvatureFlowProgram->setUniform("timeStep", m_timeStep);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
@@ -586,7 +558,7 @@ void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 		gl::glDepthFunc(gl::GL_LEQUAL);
 
 		m_blurringTexture[notCurrent]->bindActive(gl::GL_TEXTURE0);
-		m_programSmoothing->setUniform(m_programSmoothing->getUniformLocation("depthTexture"), 0);
+		m_curvatureFlowProgram->setUniform(m_curvatureFlowProgram->getUniformLocation("depthTexture"), 0);
 
 		gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
@@ -594,9 +566,9 @@ void ScreenSpaceFluidRenderer::curvatureFlowBlur(MetaballsExample * painter)
 		current = current == 0 ? 1 : 0;
 	}
 
-	m_programSmoothing->release();
+	m_curvatureFlowProgram->release();
 	gl::glDisable(gl::GL_DEPTH_TEST);
-	m_vaoPlan->unbind();
+	m_screenAlignedQuadVAO->unbind();
 
 	gl::glViewport(0, 0, painter->viewportCapability()->width(), painter->viewportCapability()->height());
 }
@@ -608,21 +580,21 @@ void ScreenSpaceFluidRenderer::bilateralBlur(MetaballsExample * painter)
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LEQUAL);
 
-	m_programSmoothing2->use();
-	m_vaoPlan->bind();
+	m_verticalBilateralProgram->use();
+	m_screenAlignedQuadVAO->bind();
 
 	m_metaballTexture->bindActive(gl::GL_TEXTURE0);
-	m_programSmoothing2->setUniform(m_programSmoothing2->getUniformLocation("depthTexture"), 0);
+	m_verticalBilateralProgram->setUniform(m_verticalBilateralProgram->getUniformLocation("depthTexture"), 0);
 	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
-	m_programSmoothing2->setUniform("viewport", viewport);
-	m_programSmoothing2->setUniform("binomCoeff", m_binomCoeff);
-	m_programSmoothing2->setUniform("binomOffset", m_binomOffset);
+	m_verticalBilateralProgram->setUniform("viewport", viewport);
+	m_verticalBilateralProgram->setUniform("binomCoeff", m_binomCoeff);
+	m_verticalBilateralProgram->setUniform("binomOffset", m_binomOffset);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
 	gl::glDisable(gl::GL_DEPTH_TEST);
 
-	m_programSmoothing2->release();
+	m_verticalBilateralProgram->release();
 	m_blurringFBO[0]->unbind();
 
 	m_blurringFBO[1]->bind();
@@ -631,86 +603,86 @@ void ScreenSpaceFluidRenderer::bilateralBlur(MetaballsExample * painter)
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LEQUAL);
 
-	m_programSmoothing2->use();
+	m_verticalBilateralProgram->use();
 
 	m_blurringTexture[0]->bindActive(gl::GL_TEXTURE0);
-	m_programSmoothing3->setUniform(m_programSmoothing3->getUniformLocation("depthTexture"), 0);
-	m_programSmoothing3->setUniform("viewport", viewport);
-	m_programSmoothing3->setUniform("binomCoeff", m_binomCoeff);
-	m_programSmoothing3->setUniform("binomOffset", m_binomOffset);
+	m_horizontalBilateralProgram->setUniform(m_horizontalBilateralProgram->getUniformLocation("depthTexture"), 0);
+	m_horizontalBilateralProgram->setUniform("viewport", viewport);
+	m_horizontalBilateralProgram->setUniform("binomCoeff", m_binomCoeff);
+	m_horizontalBilateralProgram->setUniform("binomOffset", m_binomOffset);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
 	gl::glDisable(gl::GL_DEPTH_TEST);
 
-	m_programSmoothing3->release();
+	m_horizontalBilateralProgram->release();
 	m_blurringFBO[0]->unbind();
-	m_vaoPlan->unbind();
+	m_screenAlignedQuadVAO->unbind();
 }
 
-void ScreenSpaceFluidRenderer::drawThirdPass(MetaballsExample * painter)
+void ScreenSpaceFluidRenderer::compose(MetaballsExample * painter)
 {
-	m_finalFBO->bind();
+	m_composingFBO->bind();
 	gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LEQUAL);
 
-	m_programFinal->use();
-	m_vaoPlan->bind();
+	m_composingProgram->use();
+	m_screenAlignedQuadVAO->bind();
 
 	//m_colorTexture2->bindActive(gl::GL_TEXTURE0);
-	//m_programFinal->setUniform(m_programFinal->getUniformLocation("colorTexture"), 0);
+	//m_composingProgram->setUniform(m_composingProgram->getUniformLocation("colorTexture"), 0);
 
 	if (!m_bilateral)
 		m_blurringTexture[!(m_blurringIterations % 2)]->bindActive(gl::GL_TEXTURE0);
 	else
 		m_blurringTexture[1]->bindActive(gl::GL_TEXTURE0);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("depthTexture"), 0);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("depthTexture"), 0);
 
 	m_thicknessTexture->bindActive(gl::GL_TEXTURE1);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("thicknessTexture"), 1);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("thicknessTexture"), 1);
 
 	m_skybox->bindActive(gl::GL_TEXTURE2);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("skybox"), 2);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("skybox"), 2);
 
 	m_shadowTexture->bindActive(gl::GL_TEXTURE3);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("shadowTexture"), 3);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("shadowTexture"), 3);
 
 	m_groundColorTexture->bindActive(gl::GL_TEXTURE4);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("groundTexture"), 4);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("groundTexture"), 4);
 
 	m_groundDepthTexture->bindActive(gl::GL_TEXTURE5);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("groundDepthTexture"), 5);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("groundDepthTexture"), 5);
 
 	m_shadowThicknessTexture->bindActive(gl::GL_TEXTURE6);
-	m_programFinal->setUniform(m_programFinal->getUniformLocation("shadowThicknessTexture"), 6);
+	m_composingProgram->setUniform(m_composingProgram->getUniformLocation("shadowThicknessTexture"), 6);
 
-	m_programFinal->setUniform("view", painter->cameraCapability()->view());
-	m_programFinal->setUniform("projection", painter->projectionCapability()->projection());
-	m_programFinal->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
-	m_programFinal->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
-	m_programFinal->setUniform("near", painter->projectionCapability()->zNear());
-	m_programFinal->setUniform("far", painter->projectionCapability()->zFar());
-	m_programFinal->setUniform("lightPos", m_camera.eye);
-	m_programFinal->setUniform("eye", painter->cameraCapability()->eye());
+	m_composingProgram->setUniform("view", painter->cameraCapability()->view());
+	m_composingProgram->setUniform("projection", painter->projectionCapability()->projection());
+	m_composingProgram->setUniform("projectionInverted", painter->projectionCapability()->projectionInverted());
+	m_composingProgram->setUniform("viewInverted", painter->cameraCapability()->viewInverted());
+	m_composingProgram->setUniform("near", painter->projectionCapability()->zNear());
+	m_composingProgram->setUniform("far", painter->projectionCapability()->zFar());
+	m_composingProgram->setUniform("lightPos", m_camera.eye);
+	m_composingProgram->setUniform("eye", painter->cameraCapability()->eye());
 
-	m_programFinal->setUniform("viewShadow", m_camera.view);
-	m_programFinal->setUniform("projectionShadow", m_camera.projection);
+	m_composingProgram->setUniform("viewShadow", m_camera.view);
+	m_composingProgram->setUniform("projectionShadow", m_camera.projection);
 
 	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
-	m_programFinal->setUniform("viewport", viewport);
+	m_composingProgram->setUniform("viewport", viewport);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-	m_programFinal->release();
+	m_composingProgram->release();
 	gl::glDisable(gl::GL_DEPTH_TEST);
-	m_vaoPlan->unbind();
-	m_finalFBO->unbind();
+	m_screenAlignedQuadVAO->unbind();
+	m_composingFBO->unbind();
 }
 
 void ScreenSpaceFluidRenderer::drawShadowmap(MetaballsExample * painter)
 {
-	m_vao->bind();
+	m_VAO->bind();
 
 	m_shadowFBO->bind();
 	gl::glClear(gl::GL_DEPTH_BUFFER_BIT);
@@ -736,16 +708,16 @@ void ScreenSpaceFluidRenderer::drawShadowmap(MetaballsExample * painter)
 	gl::glEnable(gl::GL_BLEND);
 	gl::glBlendFunc(gl::GL_ONE, gl::GL_ONE);
 
-	m_programThickness->use();
-	m_programThickness->setUniform("view", m_camera.view);
-	m_programThickness->setUniform("projection", m_camera.projection);
-	m_programThickness->setUniform("near", painter->projectionCapability()->zNear());
-	m_programThickness->setUniform("far", painter->projectionCapability()->zFar());
+	m_thicknessProgram->use();
+	m_thicknessProgram->setUniform("view", m_camera.view);
+	m_thicknessProgram->setUniform("projection", m_camera.projection);
+	m_thicknessProgram->setUniform("near", painter->projectionCapability()->zNear());
+	m_thicknessProgram->setUniform("far", painter->projectionCapability()->zFar());
 
 	gl::glDrawArrays(gl::GL_POINTS, 0, static_cast<gl::GLsizei>(m_metaballs.size()));
 
-	m_vao->unbind();
-	m_programThickness->release();
+	m_VAO->unbind();
+	m_thicknessProgram->release();
 	m_shadowThicknessFBO->unbind();
 
 	gl::glDisable(gl::GL_BLEND);
