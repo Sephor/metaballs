@@ -12,8 +12,8 @@ uniform vec2 viewport;
 in vec2 textCoord;
 
 vec3 meanCurvature(vec2 pos) {
-	//This implements mean curvature flow as found in the paper "Screen Space
-	//Fluid Rendering with Curvature Flow" by Wladimir J. van der Laan,
+	//This is an implements of mean curvature flow as found in the paper
+	//"Screen Space Fluid Rendering with Curvature Flow" by Wladimir J. van der Laan,
 	//Simon Green, and Miguel Sainz (2009)
 
 	//Width of one pixel
@@ -24,7 +24,7 @@ vec3 meanCurvature(vec2 pos) {
 	float zc =  texture(depthTexture, pos).x;
 
 	//Finite diferences for x
-	//let z(x) be the depth at horizontal position x and dx a small enough change
+	//Let z(x) be the depth at horizontal position x and dx a small enough change
 	//in x (e.g. one pixel), then zdx(x) can be approximated as:
 	//zdx(x) = 1/(2 * dx) * (z(x + dx) - z(x - dx))
 	//(and similarly for y)
@@ -44,7 +44,7 @@ vec3 meanCurvature(vec2 pos) {
 	zdy = (zdyn == 1.0) ? zdyp - zc : zdy;
 
 	//second derivative of the depth
-	//let zdx(x) be the change in depth as above and dx a small change in x, then
+	//Let zdx(x) be the change in depth as above and dx a small change in x, then
 	//zdx2(x) can be approximated as:
 	//zdx2(x) = 1/(2 * dx) * (zdx(x + dx) - zdx(x - dx))
 	//if we chose dx as 0.5 pixels and substitute zdx(x) we get:
