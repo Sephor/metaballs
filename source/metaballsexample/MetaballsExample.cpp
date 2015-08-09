@@ -75,73 +75,76 @@ void MetaballsExample::onPaint()
 
 void MetaballsExample::setupPropertyGroup()
 {
-	addProperty<bool>("Bilateral", &m_SSFRenderer,
-		&ScreenSpaceFluidRenderer::getBilateral, &ScreenSpaceFluidRenderer::setBilateral);
-
 	addProperty<bool>("Simulate", &m_fluidSimulator,
 		&FluidSimulator::getIsRunning, &FluidSimulator::setIsRunning);
 
-	addProperty<unsigned int>("Iterations", &m_SSFRenderer,
+	addProperty<bool>("Bilateral", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getBilateral, &ScreenSpaceFluidRenderer::setBilateral);
+
+	addProperty<bool>("Mean Curvature Flow", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getCurvatureFlow, &ScreenSpaceFluidRenderer::setCurvatureFlow);
+
+	
+	auto filterGroup = addGroup("Filter Options");
+
+	filterGroup->addProperty<unsigned int>("Iterations", &m_SSFRenderer,
 		&ScreenSpaceFluidRenderer::getBlurringIterations, &ScreenSpaceFluidRenderer::setBlurringIterations)->setOptions({
 			{ "minimum", 1 },
 			{ "maximum", 5000 },
 			{ "step", 100 },
 			{ "precision", 2u } });
 
-	addProperty<float>("MetaballSize", &m_fluidSimulator,
-		&FluidSimulator::getMetaballRadius, &FluidSimulator::setMetaballRadius)->setOptions({
-			{ "minimum", 0.0f },
-			{ "maximum", 1.0f },
-			{ "step", 0.01f },
+	filterGroup->addProperty<float>("BlurringScale", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getBlurringScale, &ScreenSpaceFluidRenderer::setBlurringScale)->setOptions({
+			{ "minimum", 1.f },
+			{ "step", 0.5f },
 			{ "precision", 2u } });
 
-	addProperty<float>("Attraction", &m_fluidSimulator,
+	filterGroup->addProperty<float>("Precision per step", &m_SSFRenderer,
+		&ScreenSpaceFluidRenderer::getTimeStep, &ScreenSpaceFluidRenderer::setTimeStep)->setOptions({
+			{ "minimum", 0.00001f },
+			{ "maximum", 0.001f },
+			{ "precision", 5u } });
+
+
+	auto physicsGroup = addGroup("Physics Options");
+
+	physicsGroup->addProperty<float>("Attraction", &m_fluidSimulator,
 		&FluidSimulator::getAttractionFactor, &FluidSimulator::setAttractionFactor)->setOptions({
 			{ "minimum", 0.0f },
 			{ "maximum", 10.0f },
 			{ "step", 0.1f },
 			{ "precision", 1u } });
 
-	addProperty<float>("Repulsion", &m_fluidSimulator,
+	physicsGroup->addProperty<float>("Repulsion", &m_fluidSimulator,
 		&FluidSimulator::getRepulsionFactor, &FluidSimulator::setRepulsionFactor)->setOptions({
 			{ "minimum", 0.0f },
 			{ "maximum", 10.0f },
 			{ "step", 0.1f },
 			{ "precision", 1u } });
 
-	addProperty<float>("SpawnTime", &m_fluidSimulator,
+	physicsGroup->addProperty<float>("Spawn Time", &m_fluidSimulator,
 		&FluidSimulator::getEmitterPeriod, &FluidSimulator::setEmitterPeriod)->setOptions({
 			{ "minimum", 0.01f },
 			{ "maximum", 1.0f },
 			{ "step", 0.01f },
 			{ "precision", 2u } });
 
-	addProperty<float>("Spread", &m_fluidSimulator,
+	//random position
+	physicsGroup->addProperty<float>("Spread", &m_fluidSimulator,
 		&FluidSimulator::getSpread, &FluidSimulator::setSpread)->setOptions({
 			{ "minimum", 0.0f },
 			{ "maximum", 1.0f },
 			{ "step", 0.01f },
 			{ "precision", 2u } });
 
-	addProperty<float>("Spray", &m_fluidSimulator,
+	//random velocity
+	physicsGroup->addProperty<float>("Spray", &m_fluidSimulator,
 		&FluidSimulator::getSpray, &FluidSimulator::setSpray)->setOptions({
 			{ "minimum", 0.0f },
 			{ "maximum", 2.0f },
 			{ "step", 0.01f },
 			{ "precision", 2u } });
-
-	addProperty<float>("BlurringScale", &m_SSFRenderer,
-		&ScreenSpaceFluidRenderer::getBlurringScale, &ScreenSpaceFluidRenderer::setBlurringScale)->setOptions({
-			{ "minimum", 1.f },
-			{ "maximum", 3.f },
-			{ "step", 0.5f },
-			{ "precision", 2u } });
-
-	addProperty<float>("TimeStep", &m_SSFRenderer,
-		&ScreenSpaceFluidRenderer::getTimeStep, &ScreenSpaceFluidRenderer::setTimeStep)->setOptions({
-			{ "minimum", 0.00001f },
-			{ "maximum", 0.001f },
-			{ "precision", 5u } });
 }
 
 const gloperate::AbstractTargetFramebufferCapability * MetaballsExample::targetFramebufferCapability() const

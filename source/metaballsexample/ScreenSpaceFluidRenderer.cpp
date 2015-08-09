@@ -91,11 +91,6 @@ globjects::Framebuffer* ScreenSpaceFluidRenderer::draw(MetaballsExample * painte
 		m_groundColorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 	}
 
-	if (painter->projectionCapability()->hasChanged())
-	{
-		setupShadowmap(painter);
-	}
-
 	if (m_reload)
 	{
 		setupPrograms(painter);
@@ -141,12 +136,22 @@ unsigned int ScreenSpaceFluidRenderer::getBlurringIterations() const
 void ScreenSpaceFluidRenderer::setBilateral(bool value)
 {
 	m_bilateral = value;
-	m_blurringScale = static_cast<float>(!value) + 1.f;
+	//setBlurringScale(static_cast<float>(!value) + 1.f);
 }
 
 bool ScreenSpaceFluidRenderer::getBilateral() const
 {
 	return m_bilateral;
+}
+
+void ScreenSpaceFluidRenderer::setCurvatureFlow(bool value)
+{
+	m_bilateral = !value;
+}
+
+bool ScreenSpaceFluidRenderer::getCurvatureFlow() const
+{
+	return !m_bilateral;
 }
 
 void ScreenSpaceFluidRenderer::setBlurringScale(float value)
