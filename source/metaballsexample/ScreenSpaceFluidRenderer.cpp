@@ -50,7 +50,7 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 	setupGround();
 	setupShadowmap(painter);
 
-	for (int nHalf = 0; nHalf < 30; ++nHalf){
+	/*for (int nHalf = 0; nHalf < 30; ++nHalf){
 		m_binomOffset.push_back(static_cast<int>(m_binomCoeff.size()));
 		for (int k = nHalf; k >= 0; --k){
 			double num = 1.0;
@@ -60,6 +60,16 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 				num /= 2;
 			m_binomCoeff.push_back(float(num));
 		}
+	} */
+	for (int i = 29; i >= 0; --i)
+	{
+		double num = 1.0;
+		for (int i2 = 0; i < 2 * 29 - i; ++i2)
+		{
+			num = 0.5 * num * (2.0 * 29 - i2) / (i2 + 1);
+		}
+		num *= pow(0.5, i);
+		m_binomCoeff[i] = static_cast<float>(num);
 	}
 }
 
@@ -588,7 +598,6 @@ void ScreenSpaceFluidRenderer::bilateralBlur(MetaballsExample * painter)
 	glm::vec2 viewport(static_cast<float>(painter->viewportCapability()->width()), static_cast<float>(painter->viewportCapability()->height()));
 	m_verticalBilateralProgram->setUniform("viewport", viewport);
 	m_verticalBilateralProgram->setUniform("binomCoeff", m_binomCoeff);
-	m_verticalBilateralProgram->setUniform("binomOffset", m_binomOffset);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
@@ -603,13 +612,12 @@ void ScreenSpaceFluidRenderer::bilateralBlur(MetaballsExample * painter)
 	gl::glEnable(gl::GL_DEPTH_TEST);
 	gl::glDepthFunc(gl::GL_LEQUAL);
 
-	m_verticalBilateralProgram->use();
+	m_horizontalBilateralProgram->use();
 
 	m_blurringTexture[0]->bindActive(gl::GL_TEXTURE0);
 	m_horizontalBilateralProgram->setUniform(m_horizontalBilateralProgram->getUniformLocation("depthTexture"), 0);
 	m_horizontalBilateralProgram->setUniform("viewport", viewport);
 	m_horizontalBilateralProgram->setUniform("binomCoeff", m_binomCoeff);
-	m_horizontalBilateralProgram->setUniform("binomOffset", m_binomOffset);
 
 	gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 

@@ -71,8 +71,7 @@ protected:
 	bool m_bilateral;
 	unsigned int m_blurringIterations;
 
-	std::vector<float> m_binomCoeff;
-	std::vector<int> m_binomOffset;
+	std::array<float, 30> m_binomCoeff;
 
 	std::vector<glm::vec4> m_metaballs;
 
