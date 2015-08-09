@@ -81,11 +81,11 @@ void MetaballsExample::setupPropertyGroup()
 	addProperty<bool>("Bilateral", &m_SSFRenderer,
 		&ScreenSpaceFluidRenderer::getBilateral, &ScreenSpaceFluidRenderer::setBilateral);
 
-	addProperty<bool>("Mean Curvature Flow", &m_SSFRenderer,
+	addProperty<bool>("MeanCurvatureFlow", &m_SSFRenderer,
 		&ScreenSpaceFluidRenderer::getCurvatureFlow, &ScreenSpaceFluidRenderer::setCurvatureFlow);
 
 	
-	auto filterGroup = addGroup("Filter Options");
+	auto filterGroup = addGroup("FilterOptions");
 
 	filterGroup->addProperty<unsigned int>("Iterations", &m_SSFRenderer,
 		&ScreenSpaceFluidRenderer::getBlurringIterations, &ScreenSpaceFluidRenderer::setBlurringIterations)->setOptions({
@@ -100,14 +100,14 @@ void MetaballsExample::setupPropertyGroup()
 			{ "step", 0.5f },
 			{ "precision", 2u } });
 
-	filterGroup->addProperty<float>("Precision per step", &m_SSFRenderer,
+	filterGroup->addProperty<float>("PrecisionPerStep", &m_SSFRenderer,
 		&ScreenSpaceFluidRenderer::getTimeStep, &ScreenSpaceFluidRenderer::setTimeStep)->setOptions({
 			{ "minimum", 0.00001f },
 			{ "maximum", 0.001f },
 			{ "precision", 5u } });
 
 
-	auto physicsGroup = addGroup("Physics Options");
+	auto physicsGroup = addGroup("PhysicsOptions");
 
 	physicsGroup->addProperty<float>("Attraction", &m_fluidSimulator,
 		&FluidSimulator::getAttractionFactor, &FluidSimulator::setAttractionFactor)->setOptions({
@@ -123,7 +123,7 @@ void MetaballsExample::setupPropertyGroup()
 			{ "step", 0.1f },
 			{ "precision", 1u } });
 
-	physicsGroup->addProperty<float>("Spawn Time", &m_fluidSimulator,
+	physicsGroup->addProperty<float>("SpawnTime", &m_fluidSimulator,
 		&FluidSimulator::getEmitterPeriod, &FluidSimulator::setEmitterPeriod)->setOptions({
 			{ "minimum", 0.01f },
 			{ "maximum", 1.0f },

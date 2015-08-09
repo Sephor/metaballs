@@ -136,7 +136,7 @@ unsigned int ScreenSpaceFluidRenderer::getBlurringIterations() const
 void ScreenSpaceFluidRenderer::setBilateral(bool value)
 {
 	m_bilateral = value;
-	//setBlurringScale(static_cast<float>(!value) + 1.f);
+	setBlurringScale(static_cast<float>(!value) + 1.f);
 }
 
 bool ScreenSpaceFluidRenderer::getBilateral() const
