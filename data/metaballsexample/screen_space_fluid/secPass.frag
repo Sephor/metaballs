@@ -61,6 +61,8 @@ vec3 meanCurvature(vec2 pos) {
 	float dzdxy = (dzdxpyp + dzdxnyn - dzdxpyn - dzdxnyp) / 4.0;
 
 	//C_x and C_y
+	//Focal length from the projection matrix as seen here:
+	//http://ksimek.github.io/2013/08/13/intrinsic/
 	float cx = 2.0 / (viewport.x * -projection[0][0]);
 	float cy = 2.0 / (viewport.y * -projection[1][1]);
 
