@@ -88,11 +88,9 @@ protected:
 
 	void emitMetaball();
 	void updateRepulsion();
-	void updatePlaneCollision();
 	void updatePositions(float elapsedTime);
+	void updatePlaneCollision();
 	glm::vec3 computeInteractions(Metaball& metaball, std::vector<Metaball*>& neighbours);
 
-	bool doesCollide(const Metaball & metaball, const Plane & plane, float deltaTime);
-	float collisionTime(const Metaball & metaball, const Plane & plane);
 	float distanceToPlane(Metaball& metaball, Plane& plane);
 };
