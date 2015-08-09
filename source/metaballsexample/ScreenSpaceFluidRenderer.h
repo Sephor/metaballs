@@ -1,8 +1,7 @@
 #pragma once 
 
-#include "AbstractRenderer.h"
-
 #include <array>
+#include <vector>
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
@@ -18,6 +17,8 @@ namespace globjects
 	class Framebuffer;
 	class Texture;
 }
+
+class MetaballsExample;
 
 class ScreenSpaceFluidRenderer
 {

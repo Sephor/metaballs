@@ -11,7 +11,6 @@
 #include <gloperate/painter/Painter.h>
 
 #include "FluidSimulator.h"
-#include "RaycastingRenderer.h"
 #include "ScreenSpaceFluidRenderer.h"
 
 namespace globjects
@@ -33,17 +32,6 @@ public:
     MetaballsExample(gloperate::ResourceManager & resourceManager);
     virtual ~MetaballsExample();
 
-    void setupProjection();
-
-	bool getOther() const;
-	void setOther(bool value);
-	bool getRaycasting() const;
-	void setRaycasting(bool value);
-	bool getSSF() const;
-	void setSSF(bool value);
-	bool getBlur() const;
-	void setBlur(bool value);
-
 	const std::vector<glm::vec4> getMetaballs();
 
 	const gloperate::AbstractTargetFramebufferCapability * targetFramebufferCapability() const;
@@ -52,13 +40,8 @@ public:
 	const gloperate::AbstractCameraCapability * cameraCapability() const;
 
 private:
-	bool m_other;
-	bool m_raycasting;
-	bool m_blur;
-	RaycastingRenderer m_rayRenderer;
 	ScreenSpaceFluidRenderer m_SSFRenderer;
 	FluidSimulator m_fluidSimulator;
-	bool m_SSF;
 
 protected:
     virtual void onInitialize() override;
