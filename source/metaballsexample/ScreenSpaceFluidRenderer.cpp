@@ -181,7 +181,7 @@ void ScreenSpaceFluidRenderer::setupFramebuffers(MetaballsExample * painter)
 	m_blurringDummy[1]->image2D(0, gl::GL_RGBA, static_cast<gl::GLsizei>(painter->viewportCapability()->width() / m_blurringScale), static_cast<gl::GLsizei>(painter->viewportCapability()->height() / m_blurringScale), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 	m_blurringFBO[1]->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_blurringDummy[1], 0);
 
-	//third
+	//composition
 	m_colorTexture = globjects::Texture::createDefault(gl::GL_TEXTURE_2D);
 	m_colorTexture->image2D(0, gl::GL_RGBA, painter->viewportCapability()->width(), painter->viewportCapability()->height(), 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, nullptr);
 	m_composingFBO->attachTexture(gl::GL_COLOR_ATTACHMENT0, m_colorTexture, 0);
@@ -223,10 +223,10 @@ void ScreenSpaceFluidRenderer::setupGround()
 	m_groundVAO = new globjects::VertexArray;
 	m_groundVAO->bind();
 	std::vector<glm::vec3> vertices = {
-		glm::vec3(-5.f, -.0f, 5.f),
-		glm::vec3(-5.f, -.0f, -5.f),
-		glm::vec3(5.f, -.0f, 5.f),
-		glm::vec3(5.f, -.0f, -5.f) };
+		glm::vec3(-5.f, -0.f, 5.f),
+		glm::vec3(-5.f, -0.f, -5.f),
+		glm::vec3(5.f, -0.f, 5.f),
+		glm::vec3(5.f, -0.f, -5.f) };
 
 	m_ground = new globjects::Buffer;
 	m_ground->setData(vertices, gl::GL_STATIC_DRAW);

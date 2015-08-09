@@ -71,6 +71,11 @@ void MetaballsExample::onPaint()
 	tempFBO->blit(gl::GL_COLOR_ATTACHMENT0, rect, targetFBO, gl::GL_BACK_LEFT, rect, gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT, gl::GL_NEAREST);
 
 	globjects::Framebuffer::unbind();
+
+	if (m_viewportCapability->hasChanged())
+	{
+		m_viewportCapability->setChanged(false);
+	}
 }
 
 void MetaballsExample::setupPropertyGroup()
