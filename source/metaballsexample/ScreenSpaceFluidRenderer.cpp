@@ -58,7 +58,7 @@ void ScreenSpaceFluidRenderer::initialize(MetaballsExample * painter)
 			num = 0.5 * num * (2.0 * 29 - i2) / (i2 + 1);
 		}
 		num *= pow(0.5, i);
-		m_binomCoeff[i] = static_cast<float>(num);
+		m_binomCoeff[29 - i] = static_cast<float>(num);
 	}
 }
 
